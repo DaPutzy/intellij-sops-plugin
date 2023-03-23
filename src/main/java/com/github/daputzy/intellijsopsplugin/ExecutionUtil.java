@@ -40,7 +40,7 @@ public class ExecutionUtil {
 			public void processTerminated(@NotNull ProcessEvent event) {
 				final String error = sb.toString();
 
-				if (event.getExitCode() != 0 || !error.isBlank()) {
+				if (event.getExitCode() != 0 && event.getExitCode() != 200) {
 					NotificationGroupManager.getInstance()
 						.getNotificationGroup("com.github.daputzy.intellijsopsplugin")
 						.createNotification("Sops error", error, NotificationType.ERROR)
