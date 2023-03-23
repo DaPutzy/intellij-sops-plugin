@@ -34,11 +34,12 @@ public class SopsNotificationProvider implements EditorNotificationProvider {
 			.map(FileDocumentManager.getInstance()::getDocument)
 			// check if all keywords exist in the file
 			.filter(document -> SOPS_KEYWORDS.stream().allMatch(document.getText()::contains))
-			.map(document -> createNotification(file, document))
+			.map(document -> createNotification(project, file, document))
 			.orElse(__ -> null);
 	}
 
 	private Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> createNotification(
+		@NotNull Project project,
 		@NotNull VirtualFile file,
 		@NotNull Document document
 	) {
@@ -50,7 +51,7 @@ public class SopsNotificationProvider implements EditorNotificationProvider {
 			panel.createActionLabel("Edit", () -> {
 				document.setReadOnly(true);
 
-				ExecutionUtil.execute(parent.getPath(), file.getName(), () -> {
+				ExecutionUtil.execute(project, parent.getPath(), file.getName(), () -> {
 					document.setReadOnly(false);
 					file.refresh(false, false);
 				});

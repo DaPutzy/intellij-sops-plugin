@@ -13,7 +13,7 @@
 	<!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
 		 Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
 		 Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
-	<description>Display banner with edit button when a sops file is detected.</description>
+	<description>Displays banner with edit button when a sops file is detected.</description>
 
 	<!-- Product and plugin compatibility requirements.
 		 Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
@@ -23,5 +23,6 @@
 		 Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
 	<extensions defaultExtensionNs="com.intellij">
 		<editorNotificationProvider implementation="com.github.daputzy.intellijsopsplugin.SopsNotificationProvider"/>
+		<notificationGroup id="com.github.daputzy.intellijsopsplugin" displayType="STICKY_BALLOON"/>
 	</extensions>
 </idea-plugin>
