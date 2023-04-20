@@ -18,6 +18,6 @@ jobs:
 
       - name: Publish to IntelliJ Marketplace
         run: |
-          ./gradlew --debug clean publishPlugin
+          ./gradlew clean publishPlugin
         env:
           PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
