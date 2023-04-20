@@ -3,8 +3,6 @@ package com.github.daputzy.intellijsopsplugin;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightVirtualFile;
@@ -22,15 +20,13 @@ public class EditActionHandler {
 	private final VirtualFile file;
 
 	public void handle() {
-		final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-		final FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(file.getName());
 		final String originalContent = FileUtil.getContent(file);
 
 		ExecutionUtil.decrypt(project, file, decryptedContent -> {
-			final LightVirtualFile inMemoryFile = new LightVirtualFile(file.getName(), fileType, decryptedContent);
+			final VirtualFile inMemoryFile = new LightVirtualFile(file.getName(), FileUtil.getFileType(file), decryptedContent);
 
 			ApplicationManager.getApplication()
-				.invokeLater(() -> fileEditorManager.openFile(inMemoryFile, true));
+				.invokeLater(() -> FileEditorManager.getInstance(project).openFile(inMemoryFile, true));
 
 			final MessageBusConnection connection = project.getMessageBus().connect();
 			connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
