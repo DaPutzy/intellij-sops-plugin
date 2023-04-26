@@ -23,7 +23,11 @@ public class EditActionHandler {
 		final String originalContent = FileUtil.getContent(file);
 
 		ExecutionUtil.decrypt(project, file, decryptedContent -> {
-			final VirtualFile inMemoryFile = new LightVirtualFile(file.getName(), FileUtil.getFileType(file), decryptedContent);
+			final VirtualFile inMemoryFile = new LightVirtualFile(
+				file.getName(),
+				FileUtil.getFileType(file),
+				decryptedContent
+			);
 
 			ApplicationManager.getApplication()
 				.invokeLater(() -> FileEditorManager.getInstance(project).openFile(inMemoryFile, true));
@@ -32,21 +36,24 @@ public class EditActionHandler {
 			connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
 				@Override
 				public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile closedFile) {
-					final String closedFileContent = FileUtil.getDocument(closedFile).getText();
+					if (inMemoryFile.equals(closedFile)) {
+						// check if it is our file first, other files may not have a document
+						final String closedFileContent = FileUtil.getDocument(closedFile).getText();
 
-					if (inMemoryFile.equals(closedFile) && !closedFileContent.equals(decryptedContent)) {
-						FileUtil.writeContentBlocking(file, closedFileContent);
+						if (!closedFileContent.equals(decryptedContent)) {
+							FileUtil.writeContentBlocking(file, closedFileContent);
 
-						ExecutionUtil.encrypt(
-							project,
-							file,
-							// success
-							() -> file.refresh(true, false),
-							// failure
-							() -> FileUtil.writeContentBlocking(file, originalContent)
-						);
+							ExecutionUtil.encrypt(
+								project,
+								file,
+								// success
+								() -> file.refresh(true, false),
+								// failure
+								() -> FileUtil.writeContentBlocking(file, originalContent)
+							);
 
-						connection.disconnect();
+							connection.disconnect();
+						}
 					}
 				}
 			});
