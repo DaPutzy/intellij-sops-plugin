@@ -1,14 +1,19 @@
-package com.github.daputzy.intellijsopsplugin;
+package com.github.daputzy.intellijsopsplugin.sops;
 
 import java.util.stream.Stream;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import lombok.experimental.UtilityClass;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@UtilityClass
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ConfigUtil {
+
+	@Getter(lazy = true)
+	private static final ConfigUtil instance = new ConfigUtil();
 
 	private static final String SOPS_CONFIG_FILE = ".sops.yaml";
 

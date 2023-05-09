@@ -1,4 +1,4 @@
-package com.github.daputzy.intellijsopsplugin;
+package com.github.daputzy.intellijsopsplugin.sops;
 
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
@@ -15,11 +15,16 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import lombok.experimental.UtilityClass;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@UtilityClass
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExecutionUtil {
+
+	@Getter(lazy = true)
+	private static final ExecutionUtil instance = new ExecutionUtil();
 
 	private static final String SOPS_COMMAND = "sops";
 

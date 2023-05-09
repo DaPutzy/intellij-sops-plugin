@@ -1,5 +1,7 @@
-package com.github.daputzy.intellijsopsplugin;
+package com.github.daputzy.intellijsopsplugin.handler;
 
+import com.github.daputzy.intellijsopsplugin.file.FileUtil;
+import com.github.daputzy.intellijsopsplugin.sops.ExecutionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
@@ -20,12 +22,12 @@ public class EditActionHandler {
 	private final VirtualFile file;
 
 	public void handle() {
-		final String originalContent = FileUtil.getContent(file);
+		final String originalContent = FileUtil.getInstance().getContent(file);
 
-		ExecutionUtil.decrypt(project, file, decryptedContent -> {
+		ExecutionUtil.getInstance().decrypt(project, file, decryptedContent -> {
 			final VirtualFile inMemoryFile = new LightVirtualFile(
 				file.getName(),
-				FileUtil.getFileType(file),
+				FileUtil.getInstance().getFileType(file),
 				decryptedContent
 			);
 
@@ -38,18 +40,18 @@ public class EditActionHandler {
 				public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile closedFile) {
 					if (inMemoryFile.equals(closedFile)) {
 						// check if it is our file first, other files may not have a document
-						final String closedFileContent = FileUtil.getDocument(closedFile).getText();
+						final String closedFileContent = FileUtil.getInstance().getDocument(closedFile).getText();
 
 						if (!closedFileContent.equals(decryptedContent)) {
-							FileUtil.writeContentBlocking(file, closedFileContent);
+							FileUtil.getInstance().writeContentBlocking(file, closedFileContent);
 
-							ExecutionUtil.encrypt(
+							ExecutionUtil.getInstance().encrypt(
 								project,
 								file,
 								// success
 								() -> file.refresh(true, false),
 								// failure
-								() -> FileUtil.writeContentBlocking(file, originalContent)
+								() -> FileUtil.getInstance().writeContentBlocking(file, originalContent)
 							);
 
 							connection.disconnect();

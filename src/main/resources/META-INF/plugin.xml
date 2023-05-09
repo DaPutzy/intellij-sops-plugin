@@ -13,7 +13,14 @@
 	<!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
 		 Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
 		 Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
-	<description>Displays banner with edit button when a sops file is detected.</description>
+	<description>Allows you to simply edit a Sops file via a button or action.</description>
+
+	<change-notes><![CDATA[
+		<h2>New Features</h2>
+		<ul>
+			<li>Added action "Simple Sops Edit" so users can bind keyboard shortcuts.</li>
+		</ul>
+	]]></change-notes>
 
 	<!-- Product and plugin compatibility requirements.
 		 Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
@@ -25,4 +32,9 @@
 		<editorNotificationProvider implementation="com.github.daputzy.intellijsopsplugin.SopsNotificationProvider"/>
 		<notificationGroup id="com.github.daputzy.intellijsopsplugin" displayType="STICKY_BALLOON"/>
 	</extensions>
+
+	<actions>
+		<action id="com.github.daputzy.intellijsopsplugin.SopsEditAction"
+			class="com.github.daputzy.intellijsopsplugin.SopsEditAction" text="Simple Sops Edit"/>
+	</actions>
 </idea-plugin>

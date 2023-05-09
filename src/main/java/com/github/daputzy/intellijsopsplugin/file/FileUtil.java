@@ -1,4 +1,4 @@
-package com.github.daputzy.intellijsopsplugin;
+package com.github.daputzy.intellijsopsplugin.file;
 
 import java.io.IOException;
 
@@ -14,11 +14,16 @@ import com.intellij.openapi.fileTypes.PlainTextFileType;
 import com.intellij.openapi.fileTypes.UnknownFileType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ThrowableRunnable;
-import lombok.experimental.UtilityClass;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@UtilityClass
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FileUtil {
+
+	@Getter(lazy = true)
+	private static final FileUtil instance = new FileUtil();
 
 	public @NotNull Document getDocument(final VirtualFile file) {
 		final Document document = ReadAction.compute(() -> FileDocumentManager.getInstance().getDocument(file));
