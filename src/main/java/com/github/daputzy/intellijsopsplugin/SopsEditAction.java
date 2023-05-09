@@ -2,7 +2,6 @@ package com.github.daputzy.intellijsopsplugin;
 
 import com.github.daputzy.intellijsopsplugin.handler.EditActionHandler;
 import com.github.daputzy.intellijsopsplugin.sops.DetectionUtil;
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -11,11 +10,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 public class SopsEditAction extends AnAction {
-
-	@Override
-	public @NotNull ActionUpdateThread getActionUpdateThread() {
-		return ActionUpdateThread.BGT;
-	}
 
 	@Override
 	public void actionPerformed(@NotNull AnActionEvent e) {
