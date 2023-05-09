@@ -1,4 +1,4 @@
-name: Release
+name: Publish to Jetbrains Marketplace
 on: workflow_dispatch
 
 jobs:
