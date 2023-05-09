@@ -33,7 +33,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: "v${{ env.RELEASE_VERSION }}"
-          release_name: "Simple Sops Edit "v${{ env.RELEASE_VERSION }}""
+          release_name: "Simple Sops Edit v${{ env.RELEASE_VERSION }}"
           body: ""
           draft: false
           prerelease: false
