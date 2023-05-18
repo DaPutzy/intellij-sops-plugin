@@ -3,6 +3,7 @@ package com.github.daputzy.intellijsopsplugin.sops;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
+import com.github.daputzy.intellijsopsplugin.settings.SettingsState;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.OSProcessHandler;
@@ -26,12 +27,10 @@ public class ExecutionUtil {
 	@Getter(lazy = true)
 	private static final ExecutionUtil instance = new ExecutionUtil();
 
-	private static final String SOPS_COMMAND = "sops";
-
 	private static final String DEPRECATION_WARNING = "Deprecation Warning";
 
 	public void decrypt(final Project project, VirtualFile file, final Consumer<String> successHandler) {
-		final GeneralCommandLine command = new GeneralCommandLine(SOPS_COMMAND);
+		final GeneralCommandLine command = new GeneralCommandLine(SettingsState.getInstance().sopsExecutable);
 		command.setWorkDirectory(file.getParent().getPath());
 		command.setCharset(StandardCharsets.UTF_8);
 
@@ -67,7 +66,7 @@ public class ExecutionUtil {
 	}
 
 	public void encrypt(final Project project, VirtualFile file, final Runnable successHandler, final Runnable failureHandler) {
-		final GeneralCommandLine command = new GeneralCommandLine(SOPS_COMMAND);
+		final GeneralCommandLine command = new GeneralCommandLine(SettingsState.getInstance().sopsExecutable);
 		command.setWorkDirectory(file.getParent().getPath());
 		command.setCharset(StandardCharsets.UTF_8);
 

@@ -19,6 +19,7 @@
 		<h2>New Features</h2>
 		<ul>
 			<li>Added action "Simple Sops Edit" so users can bind keyboard shortcuts.</li>
+			<li>Added option "Simple Sops Settings" so users can set a custom sops executable</li>
 		</ul>
 	]]></change-notes>
 
@@ -31,6 +32,15 @@
 	<extensions defaultExtensionNs="com.intellij">
 		<editorNotificationProvider implementation="com.github.daputzy.intellijsopsplugin.SopsNotificationProvider"/>
 		<notificationGroup id="com.github.daputzy.intellijsopsplugin" displayType="STICKY_BALLOON"/>
+
+		<applicationService
+			serviceImplementation="com.github.daputzy.intellijsopsplugin.settings.SettingsState"/>
+
+		<applicationConfigurable
+			parentId="tools"
+			instance="com.github.daputzy.intellijsopsplugin.settings.SettingsConfigurable"
+			id="com.github.daputzy.intellijsopsplugin"
+			displayName="Simple Sops Settings"/>
 	</extensions>
 
 	<actions>
