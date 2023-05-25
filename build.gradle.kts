@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.daputzy"
-version = "1.2.0"
+version = "1.2.1"
 
 repositories {
     mavenCentral()
