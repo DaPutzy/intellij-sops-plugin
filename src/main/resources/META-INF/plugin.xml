@@ -21,6 +21,10 @@
 			<li>Added action "Simple Sops Edit" so users can bind keyboard shortcuts.</li>
 			<li>Added option "Simple Sops Settings" so users can set a custom sops executable</li>
 		</ul>
+		<h2>Bugfixes</h2>
+		<ul>
+			<li>Fixed bug where sops configs in the project root where not recognized</li>
+		</ul>
 	]]></change-notes>
 
 	<!-- Product and plugin compatibility requirements.

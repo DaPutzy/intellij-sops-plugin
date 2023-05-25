@@ -8,6 +8,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ConfigUtil {
@@ -17,19 +18,23 @@ public class ConfigUtil {
 
 	private static final String SOPS_CONFIG_FILE = ".sops.yaml";
 
-	public boolean sopsConfigExists(final Project project, final VirtualFile file) {
+	public boolean sopsConfigExists(@NotNull final Project project, @NotNull final VirtualFile file) {
 		final VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
 
 		if (projectDir != null) {
-			VirtualFile parent = file.getParent();
+			VirtualFile current = file;
 
-			while (parent != null && !projectDir.equals(parent)) {
-				if (Stream.of(parent.getChildren()).map(VirtualFile::getName).anyMatch(SOPS_CONFIG_FILE::equals)) {
-					return true;
+			do {
+				current = current.getParent();
+
+				if (current == null) {
+					return false;
 				}
 
-				parent = parent.getParent();
-			}
+				if (Stream.of(current.getChildren()).map(VirtualFile::getName).anyMatch(SOPS_CONFIG_FILE::equals)) {
+					return true;
+				}
+			} while (!projectDir.equals(current));
 		}
 
 		return false;
