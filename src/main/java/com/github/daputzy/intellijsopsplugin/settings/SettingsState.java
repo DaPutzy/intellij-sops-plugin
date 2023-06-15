@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 public class SettingsState implements PersistentStateComponent<SettingsState> {
 
 	public String sopsExecutable = "sops";
+	public boolean sopsFilesReadOnly = false;
 
 	public static SettingsState getInstance() {
 		return ApplicationManager.getApplication().getService(SettingsState.class);

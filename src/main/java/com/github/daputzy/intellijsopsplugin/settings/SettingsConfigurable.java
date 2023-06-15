@@ -1,5 +1,7 @@
 package com.github.daputzy.intellijsopsplugin.settings;
 
+import java.util.Objects;
+
 import com.intellij.openapi.options.Configurable;
 import javax.swing.*;
 import org.jetbrains.annotations.Nls;
@@ -31,7 +33,8 @@ public class SettingsConfigurable implements Configurable {
 	public boolean isModified() {
 		final SettingsState settings = SettingsState.getInstance();
 
-		return !settings.sopsExecutable.equals(settingsComponent.getSopsExecutable());
+		return !settings.sopsExecutable.equals(settingsComponent.getSopsExecutable()) ||
+			!Objects.equals(settings.sopsFilesReadOnly, settingsComponent.getSopsFilesReadOnly());
 	}
 
 	@Override
@@ -39,6 +42,7 @@ public class SettingsConfigurable implements Configurable {
 		final SettingsState settings = SettingsState.getInstance();
 
 		settings.sopsExecutable = settingsComponent.getSopsExecutable();
+		settings.sopsFilesReadOnly = settingsComponent.getSopsFilesReadOnly();
 	}
 
 	@Override
@@ -46,6 +50,7 @@ public class SettingsConfigurable implements Configurable {
 		final SettingsState settings = SettingsState.getInstance();
 
 		settingsComponent.setSopsExecutable(settings.sopsExecutable);
+		settingsComponent.setSopsFilesReadOnly(settings.sopsFilesReadOnly);
 	}
 
 	@Override

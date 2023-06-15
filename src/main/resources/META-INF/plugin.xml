@@ -20,6 +20,7 @@
 		<ul>
 			<li>Added action "Simple Sops Edit" so users can bind keyboard shortcuts.</li>
 			<li>Added option "Simple Sops Settings" so users can set a custom sops executable</li>
+			<li>Added option "Set Sops files read only" so users can decide to set all sops files read only</li>
 		</ul>
 		<h2>Bugfixes</h2>
 		<ul>
@@ -51,4 +52,10 @@
 		<action id="com.github.daputzy.intellijsopsplugin.SopsEditAction"
 			class="com.github.daputzy.intellijsopsplugin.SopsEditAction" text="Simple Sops Edit"/>
 	</actions>
+
+	<applicationListeners>
+		<listener
+			class="com.github.daputzy.intellijsopsplugin.SopsFileReadOnlyAction"
+			topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+	</applicationListeners>
 </idea-plugin>
