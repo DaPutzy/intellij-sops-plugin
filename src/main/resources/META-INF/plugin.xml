@@ -19,8 +19,9 @@
 		<h2>New Features</h2>
 		<ul>
 			<li>Added action "Simple Sops Edit" so users can bind keyboard shortcuts.</li>
-			<li>Added option "Simple Sops Settings" so users can set a custom sops executable</li>
-			<li>Added option "Set Sops files read only" so users can decide to set all sops files read only</li>
+			<li>Added setting "Sops executable" so users can set a custom sops executable</li>
+			<li>Added setting "Set Sops files read only" so users can decide to set all sops files read only</li>
+			<li>Added setting "Sops environment" so users can set additional environment variables</li>
 		</ul>
 		<h2>Bugfixes</h2>
 		<ul>

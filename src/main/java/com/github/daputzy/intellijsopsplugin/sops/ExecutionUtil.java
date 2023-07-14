@@ -1,7 +1,11 @@
 package com.github.daputzy.intellijsopsplugin.sops;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import com.github.daputzy.intellijsopsplugin.settings.SettingsState;
 import com.intellij.execution.ExecutionException;
@@ -16,6 +20,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.EnvironmentUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,9 +35,7 @@ public class ExecutionUtil {
 	private static final String DEPRECATION_WARNING = "Deprecation Warning";
 
 	public void decrypt(final Project project, VirtualFile file, final Consumer<String> successHandler) {
-		final GeneralCommandLine command = new GeneralCommandLine(SettingsState.getInstance().sopsExecutable);
-		command.setWorkDirectory(file.getParent().getPath());
-		command.setCharset(StandardCharsets.UTF_8);
+		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
 
 		command.addParameter("-d");
 		command.addParameter(file.getName());
@@ -66,9 +69,7 @@ public class ExecutionUtil {
 	}
 
 	public void encrypt(final Project project, VirtualFile file, final Runnable successHandler, final Runnable failureHandler) {
-		final GeneralCommandLine command = new GeneralCommandLine(SettingsState.getInstance().sopsExecutable);
-		command.setWorkDirectory(file.getParent().getPath());
-		command.setCharset(StandardCharsets.UTF_8);
+		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
 
 		command.addParameter("-e");
 		command.addParameter("-i");
@@ -123,5 +124,25 @@ public class ExecutionUtil {
 
 		processHandler.addProcessListener(listener);
 		processHandler.startNotify();
+	}
+
+	private GeneralCommandLine buildCommand(final String cwd) {
+		final GeneralCommandLine command = new GeneralCommandLine(SettingsState.getInstance().sopsExecutable)
+			.withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
+			.withCharset(StandardCharsets.UTF_8)
+			.withWorkDirectory(cwd);
+
+		final String[] environmentString = SettingsState.getInstance().sopsEnvironment.split("\\s(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+
+		final List<String> environmentList = Arrays.stream(environmentString)
+			.map(String::trim)
+			.filter(Predicate.not(String::isBlank))
+			.collect(Collectors.toList());
+
+		command.withEnvironment(
+			EnvironmentUtil.parseEnv(environmentList.toArray(String[]::new))
+		);
+
+		return command;
 	}
 }

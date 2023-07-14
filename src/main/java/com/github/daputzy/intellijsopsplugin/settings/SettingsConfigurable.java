@@ -33,7 +33,8 @@ public class SettingsConfigurable implements Configurable {
 	public boolean isModified() {
 		final SettingsState settings = SettingsState.getInstance();
 
-		return !settings.sopsExecutable.equals(settingsComponent.getSopsExecutable()) ||
+		return !Objects.equals(settings.sopsEnvironment, settingsComponent.getSopsEnvironment()) ||
+			!Objects.equals(settings.sopsExecutable, settingsComponent.getSopsExecutable()) ||
 			!Objects.equals(settings.sopsFilesReadOnly, settingsComponent.getSopsFilesReadOnly());
 	}
 
@@ -41,6 +42,7 @@ public class SettingsConfigurable implements Configurable {
 	public void apply() {
 		final SettingsState settings = SettingsState.getInstance();
 
+		settings.sopsEnvironment = settingsComponent.getSopsEnvironment();
 		settings.sopsExecutable = settingsComponent.getSopsExecutable();
 		settings.sopsFilesReadOnly = settingsComponent.getSopsFilesReadOnly();
 	}
@@ -49,6 +51,7 @@ public class SettingsConfigurable implements Configurable {
 	public void reset() {
 		final SettingsState settings = SettingsState.getInstance();
 
+		settingsComponent.setSopsEnvironment(settings.sopsEnvironment);
 		settingsComponent.setSopsExecutable(settings.sopsExecutable);
 		settingsComponent.setSopsFilesReadOnly(settings.sopsFilesReadOnly);
 	}
