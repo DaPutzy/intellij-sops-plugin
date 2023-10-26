@@ -16,16 +16,9 @@
 	<description>Allows you to simply edit a Sops file via a button or action.</description>
 
 	<change-notes><![CDATA[
-		<h2>New Features</h2>
-		<ul>
-			<li>Added action "Simple Sops Edit" so users can bind keyboard shortcuts.</li>
-			<li>Added setting "Sops executable" so users can set a custom sops executable</li>
-			<li>Added setting "Set Sops files read only" so users can decide to set all sops files read only</li>
-			<li>Added setting "Sops environment" so users can set additional environment variables</li>
-		</ul>
 		<h2>Bugfixes</h2>
 		<ul>
-			<li>Fixed bug where sops configs in the project root where not recognized</li>
+			<li>Fixed bug where the read-only setting did not only affect the editor/document but actualy set the file read-only which prevented sops from operating correctly.</li>
 		</ul>
 	]]></change-notes>
 
