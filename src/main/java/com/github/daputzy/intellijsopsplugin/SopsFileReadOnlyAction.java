@@ -1,32 +1,33 @@
 package com.github.daputzy.intellijsopsplugin;
 
-import java.io.IOException;
+import java.util.List;
 
 import com.github.daputzy.intellijsopsplugin.settings.SettingsState;
 import com.github.daputzy.intellijsopsplugin.sops.DetectionUtil;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileEditor.ex.FileEditorWithProvider;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 public class SopsFileReadOnlyAction implements FileEditorManagerListener {
 
 	@Override
-	public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+	public void fileOpenedSync(@NotNull FileEditorManager source, @NotNull VirtualFile file, @NotNull List<FileEditorWithProvider> editorsWithProviders) {
 		if (!SettingsState.getInstance().sopsFilesReadOnly) {
 			return;
 		}
 
 		if (DetectionUtil.getInstance().sopsFileDetected(source.getProject(), file)) {
-			ApplicationManager.getApplication().invokeAndWait(() -> {
-				try {
-					WriteAction.runAndWait(() -> file.setWritable(false));
-				} catch (final IOException e) {
-					throw new RuntimeException("Could not set file to read only", e);
-				}
-			});
+			editorsWithProviders.stream()
+				.map(FileEditorWithProvider::getFileEditor)
+				.filter(TextEditor.class::isInstance)
+				.map(TextEditor.class::cast)
+				.map(TextEditor::getEditor)
+				.map(Editor::getDocument)
+				.forEach(document -> document.setReadOnly(true));
 		}
 	}
 }
