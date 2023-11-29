@@ -16,9 +16,9 @@
 	<description>Allows you to simply edit a Sops file via a button or action.</description>
 
 	<change-notes><![CDATA[
-		<h2>Bugfixes</h2>
+		<h2>Feature</h2>
 		<ul>
-			<li>Fixed bug where the read-only setting did not only affect the editor/document but actualy set the file read-only which prevented sops from operating correctly.</li>
+			<li>Added action "Simple Sops Replace" so users can replace an existing sops file.</li>
 		</ul>
 	]]></change-notes>
 
@@ -43,15 +43,15 @@
 	</extensions>
 
 	<actions>
-		<action id="com.github.daputzy.intellijsopsplugin.SopsEditAction"
-			class="com.github.daputzy.intellijsopsplugin.SopsEditAction" text="Simple Sops Edit"/>
-		<action id="com.github.daputzy.intellijsopsplugin.SopsReplaceAction"
-				class="com.github.daputzy.intellijsopsplugin.SopsReplaceAction" text="Simple Sops Edit and Replace"/>
+		<action id="com.github.daputzy.intellijsopsplugin.action.EditSopsAction"
+			class="com.github.daputzy.intellijsopsplugin.action.EditSopsAction" text="Simple Sops Edit"/>
+		<action id="com.github.daputzy.intellijsopsplugin.action.ReplaceSopsAction"
+			class="com.github.daputzy.intellijsopsplugin.action.ReplaceSopsAction" text="Simple Sops Replace"/>
 	</actions>
 
 	<applicationListeners>
 		<listener
-			class="com.github.daputzy.intellijsopsplugin.SopsFileReadOnlyAction"
+			class="com.github.daputzy.intellijsopsplugin.SopsFileReadOnlyListener"
 			topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
 	</applicationListeners>
 </idea-plugin>

@@ -9,17 +9,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-@RequiredArgsConstructor
-public class EditActionHandler {
+public class EditActionHandler extends ActionHandler {
 
-	@NotNull
-	private final Project project;
-
-	@NotNull
-	private final VirtualFile file;
+	public EditActionHandler(@NotNull Project project, @NotNull VirtualFile file) {
+		super(project, file);
+	}
 
 	public void handle() {
 		final String originalContent = FileUtil.getInstance().getContent(file);

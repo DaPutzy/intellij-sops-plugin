@@ -12,7 +12,7 @@ import com.intellij.openapi.fileEditor.ex.FileEditorWithProvider;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-public class SopsFileReadOnlyAction implements FileEditorManagerListener {
+public class SopsFileReadOnlyListener implements FileEditorManagerListener {
 
 	@Override
 	public void fileOpenedSync(@NotNull FileEditorManager source, @NotNull VirtualFile file, @NotNull List<FileEditorWithProvider> editorsWithProviders) {

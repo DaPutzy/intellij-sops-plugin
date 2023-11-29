@@ -1,15 +1,21 @@
-package com.github.daputzy.intellijsopsplugin;
+package com.github.daputzy.intellijsopsplugin.action;
 
-import com.github.daputzy.intellijsopsplugin.handler.EditActionHandler;
+import com.github.daputzy.intellijsopsplugin.handler.ActionHandler;
 import com.github.daputzy.intellijsopsplugin.sops.DetectionUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-public class SopsEditAction extends AnAction {
+import java.util.function.BiFunction;
+
+@RequiredArgsConstructor
+public abstract class SopsAction extends AnAction {
+
+	protected final BiFunction<Project, VirtualFile, ActionHandler> actionHandlerSupplier;
 
 	@Override
 	public void actionPerformed(@NotNull AnActionEvent e) {
@@ -20,7 +26,7 @@ public class SopsEditAction extends AnAction {
 			throw new IllegalStateException();
 		}
 
-		final EditActionHandler actionHandler = new EditActionHandler(project, file);
+		final ActionHandler actionHandler = actionHandlerSupplier.apply(project, file);
 		actionHandler.handle();
 	}
 
