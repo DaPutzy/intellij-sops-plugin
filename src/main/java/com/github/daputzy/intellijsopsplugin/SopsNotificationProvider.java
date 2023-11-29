@@ -3,6 +3,7 @@ package com.github.daputzy.intellijsopsplugin;
 import java.util.function.Function;
 
 import com.github.daputzy.intellijsopsplugin.handler.EditActionHandler;
+import com.github.daputzy.intellijsopsplugin.handler.ReplaceActionHandler;
 import com.github.daputzy.intellijsopsplugin.sops.DetectionUtil;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
@@ -29,6 +30,7 @@ public class SopsNotificationProvider implements EditorNotificationProvider {
 
 			panel.setText("Sops file detected");
 			panel.createActionLabel("Edit", new EditActionHandler(project, file)::handle);
+			panel.createActionLabel("Replace", new ReplaceActionHandler(project, file)::handle);
 
 			return panel;
 		};
