@@ -45,6 +45,8 @@
 	<actions>
 		<action id="com.github.daputzy.intellijsopsplugin.SopsEditAction"
 			class="com.github.daputzy.intellijsopsplugin.SopsEditAction" text="Simple Sops Edit"/>
+		<action id="com.github.daputzy.intellijsopsplugin.SopsReplaceAction"
+				class="com.github.daputzy.intellijsopsplugin.SopsReplaceAction" text="Simple Sops Edit and Replace"/>
 	</actions>
 
 	<applicationListeners>
