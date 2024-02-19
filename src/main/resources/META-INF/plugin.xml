@@ -16,9 +16,9 @@
 	<description>Allows you to simply edit a Sops file via a button or action.</description>
 
 	<change-notes><![CDATA[
-		<h2>Feature</h2>
+		<h2>Patch</h2>
 		<ul>
-			<li>Added action "Simple Sops Replace" so users can replace an existing sops file.</li>
+			<li>Add support for 2024.1</li>
 		</ul>
 	]]></change-notes>
 
