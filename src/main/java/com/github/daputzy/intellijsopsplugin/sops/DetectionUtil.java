@@ -24,7 +24,22 @@ public class DetectionUtil {
 		"version"
 	);
 
-	public boolean sopsFileDetected(@NotNull final Project project, @NotNull final VirtualFile file) {
+	public static final List<String> SOPS_INLINE_CONFIG_KEYWORDS = List.of(
+		"sops_pgp",
+		"sops_kms",
+		"sops_gcp_kms",
+		"sops_azure_kv",
+		"sops_hc_vault",
+		"sops_age"
+	);
+
+	private boolean sopsFileWithInlineConfigDetected(@NotNull final String content) {
+		//check if the file is a sops file with inline config
+		return SOPS_KEYWORDS.stream().allMatch(content::contains)
+			&& SOPS_INLINE_CONFIG_KEYWORDS.stream().anyMatch(content::contains);
+	}
+
+	private boolean sopsFileWithConfigFileDetected(@NotNull final Project project, @NotNull final VirtualFile file) {
 		return Optional.of(file)
 			// check if there is a sops config file
 			.filter(__ -> ConfigUtil.getInstance().sopsConfigExists(project, file))
@@ -33,5 +48,10 @@ public class DetectionUtil {
 			// check if all keywords exist in content
 			.filter(content -> SOPS_KEYWORDS.stream().allMatch(content::contains))
 			.isPresent();
+	}
+
+	public boolean sopsFileDetected(@NotNull final Project project, @NotNull final VirtualFile file) {
+		return this.sopsFileWithConfigFileDetected(project, file) ||
+			this.sopsFileWithInlineConfigDetected(FileUtil.getInstance().getContent(file));
 	}
 }
