@@ -39,15 +39,16 @@ public class EditActionHandler extends ActionHandler {
 						final String closedFileContent = FileUtil.getInstance().getDocument(closedFile).getText();
 
 						if (!closedFileContent.equals(decryptedContent)) {
-							FileUtil.getInstance().writeContentBlocking(file, closedFileContent);
-
-							ExecutionUtil.getInstance().encrypt(
+							ExecutionUtil.getInstance().replaceContent(
 								project,
 								file,
+								closedFileContent,
 								// success
-								() -> file.refresh(true, false),
+								() -> {
+									file.refresh(false, false);
+								},
 								// failure
-								() -> FileUtil.getInstance().writeContentBlocking(file, originalContent)
+								() -> {}
 							);
 
 							connection.disconnect();

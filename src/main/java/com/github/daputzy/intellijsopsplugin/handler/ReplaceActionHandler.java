@@ -41,13 +41,14 @@ public class ReplaceActionHandler extends ActionHandler {
 					if (!closedFileContent.isEmpty()) {
 						FileUtil.getInstance().writeContentBlocking(file, closedFileContent);
 
-						ExecutionUtil.getInstance().encrypt(
+						ExecutionUtil.getInstance().replaceContent(
 							project,
 							file,
+							closedFileContent,
 							// success
-							() -> file.refresh(true, false),
+							() -> file.refresh(false, false),
 							// failure
-							() -> FileUtil.getInstance().writeContentBlocking(file, originalContent)
+							() -> {}
 						);
 
 						connection.disconnect();

@@ -1,8 +1,10 @@
 package com.github.daputzy.intellijsopsplugin.sops;
 
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -68,25 +70,61 @@ public class ExecutionUtil {
 		});
 	}
 
-	public void encrypt(final Project project, VirtualFile file, final Runnable successHandler, final Runnable failureHandler) {
+	public void replaceContent(final Project project, VirtualFile file, String newContent, final Runnable successHandler, final Runnable failureHandler) {
+		// Create a temporary file to hold the new content
+		File newContentFile = null;
+        try {
+			newContentFile = File.createTempFile(file.getName(), ".tmp");
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+        }
+		try (FileWriter writer = new FileWriter(newContentFile)) {
+			writer.write(newContent);
+		} catch (IOException e) {
+			newContentFile.delete();
+			throw new RuntimeException(e);
+		}
+
+		// Create a temporary bash script to act as the sops EDITOR, which will replace the file with the new content
+        File tempScript = null;
+        try {
+            tempScript = File.createTempFile("sops-editor-", ".sh");
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+        }
+        tempScript.setExecutable(true);
+		try (FileWriter writer = new FileWriter(tempScript)) {
+			writer.write("#!/bin/sh\n");
+			writer.write("cp "+newContentFile.getPath()+" \"$1\"\n");
+		} catch (IOException e) {
+			tempScript.delete();
+            throw new RuntimeException(e);
+        }
+
 		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
 
-		command.addParameter("-e");
-		command.addParameter("-i");
 		command.addParameter(file.getName());
+		command.withEnvironment("EDITOR", tempScript.getAbsolutePath());
+
 
 		final StringBuffer stderr = new StringBuffer();
+
+		File finalNewContentFile = newContentFile;
+		File finalTempScript = tempScript;
 
 		run(command, new ProcessAdapter() {
 			@Override
 			public void processTerminated(@NotNull ProcessEvent event) {
 				notifyOnError(project, stderr);
 
+				// Clean up the temporary files
+				finalNewContentFile.delete();
+				finalTempScript.delete();
+
 				if (event.getExitCode() != 0) {
 					failureHandler.run();
 					return;
 				}
-
 				successHandler.run();
 			}
 
