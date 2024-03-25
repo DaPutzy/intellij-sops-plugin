@@ -1,13 +1,14 @@
 package com.github.daputzy.intellijsopsplugin.handler;
 
 import com.github.daputzy.intellijsopsplugin.file.FileUtil;
+import com.github.daputzy.intellijsopsplugin.file.LightVirtualFileWithCustomName;
 import com.github.daputzy.intellijsopsplugin.sops.ExecutionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -23,24 +24,23 @@ public class ReplaceActionHandler extends ActionHandler {
 	public void handle() {
 		final String originalContent = FileUtil.getInstance().getContent(file);
 
-		final VirtualFile inMemoryFile = new LightVirtualFile(
-			file.getName() + " [decrypted]",
+		final VirtualFile inMemoryFile = new LightVirtualFileWithCustomName(
+			file,
 			FileUtil.getInstance().getFileType(file),
 			StringUtils.EMPTY
 		);
 
 		ApplicationManager.getApplication().invokeLater(() -> {
-			FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-			boolean isFileOpen = Arrays.stream(fileEditorManager.getOpenFiles())
-					.anyMatch(vFile -> vFile.getName().equals(inMemoryFile.getName()));
+			final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
 
-			if (!isFileOpen) {
-				fileEditorManager.openFile(inMemoryFile, true);
-			} else {
-				Arrays.stream(fileEditorManager.getOpenFiles())
-						.filter(vFile -> vFile.getName().equals(inMemoryFile.getName()))
-						.findFirst().ifPresent(existingFile -> fileEditorManager.openFile(existingFile, true));
-			}
+			Arrays.stream(fileEditorManager.getOpenFiles())
+					.filter(vFile -> vFile instanceof LightVirtualFileWithCustomName)
+					.map(vFile -> (LightVirtualFileWithCustomName) vFile)
+					.filter(vFile -> vFile.getFilePath().equals(file.getPath()))
+					.findFirst().ifPresentOrElse(
+							existingFile -> fileEditorManager.openFile(existingFile, true),
+							() -> fileEditorManager.openEditor(new OpenFileDescriptor(project, inMemoryFile), true)
+					);
 		});
 
 		final MessageBusConnection connection = project.getMessageBus().connect();
