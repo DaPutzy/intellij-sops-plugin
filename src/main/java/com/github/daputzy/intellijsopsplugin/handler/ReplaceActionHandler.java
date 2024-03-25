@@ -12,6 +12,8 @@ import com.intellij.util.messages.MessageBusConnection;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+
 public class ReplaceActionHandler extends ActionHandler {
 
 	public ReplaceActionHandler(@NotNull Project project, @NotNull VirtualFile file) {
@@ -22,13 +24,24 @@ public class ReplaceActionHandler extends ActionHandler {
 		final String originalContent = FileUtil.getInstance().getContent(file);
 
 		final VirtualFile inMemoryFile = new LightVirtualFile(
-			file.getName(),
+			file.getName() + " [decrypted]",
 			FileUtil.getInstance().getFileType(file),
 			StringUtils.EMPTY
 		);
 
-		ApplicationManager.getApplication()
-			.invokeLater(() -> FileEditorManager.getInstance(project).openFile(inMemoryFile, true));
+		ApplicationManager.getApplication().invokeLater(() -> {
+			FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+			boolean isFileOpen = Arrays.stream(fileEditorManager.getOpenFiles())
+					.anyMatch(vFile -> vFile.getName().equals(inMemoryFile.getName()));
+
+			if (!isFileOpen) {
+				fileEditorManager.openFile(inMemoryFile, true);
+			} else {
+				Arrays.stream(fileEditorManager.getOpenFiles())
+						.filter(vFile -> vFile.getName().equals(inMemoryFile.getName()))
+						.findFirst().ifPresent(existingFile -> fileEditorManager.openFile(existingFile, true));
+			}
+		});
 
 		final MessageBusConnection connection = project.getMessageBus().connect();
 		connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {

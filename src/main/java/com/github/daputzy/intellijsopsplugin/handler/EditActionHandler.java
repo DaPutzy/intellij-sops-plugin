@@ -3,13 +3,14 @@ package com.github.daputzy.intellijsopsplugin.handler;
 import com.github.daputzy.intellijsopsplugin.file.FileUtil;
 import com.github.daputzy.intellijsopsplugin.sops.ExecutionUtil;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
 
 public class EditActionHandler extends ActionHandler {
 
@@ -22,15 +23,27 @@ public class EditActionHandler extends ActionHandler {
 
 		ExecutionUtil.getInstance().decrypt(project, file, decryptedContent -> {
 			final VirtualFile inMemoryFile = new LightVirtualFile(
-				file.getName(),
+				file.getName() + " [decrypted]",
 				FileUtil.getInstance().getFileType(file),
 				decryptedContent
 			);
 
-			ApplicationManager.getApplication()
-				.invokeLater(() -> FileEditorManager.getInstance(project).openFile(inMemoryFile, true));
+			ApplicationManager.getApplication().invokeLater(() -> {
+				FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+				boolean isFileOpen = Arrays.stream(fileEditorManager.getOpenFiles())
+						.anyMatch(vFile -> vFile.getName().equals(inMemoryFile.getName()));
+
+				if (!isFileOpen) {
+					fileEditorManager.openFile(inMemoryFile, true);
+				} else {
+                    Arrays.stream(fileEditorManager.getOpenFiles())
+                            .filter(vFile -> vFile.getName().equals(inMemoryFile.getName()))
+                            .findFirst().ifPresent(existingFile -> fileEditorManager.openFile(existingFile, true));
+                }
+			});
 
 			final MessageBusConnection connection = project.getMessageBus().connect();
+
 			connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
 				@Override
 				public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile closedFile) {
