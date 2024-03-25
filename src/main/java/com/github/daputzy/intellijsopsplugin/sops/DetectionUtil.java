@@ -25,12 +25,12 @@ public class DetectionUtil {
 	);
 
 	public static final List<String> SOPS_INLINE_CONFIG_KEYWORDS = List.of(
-		"sops_pgp",
-		"sops_kms",
-		"sops_gcp_kms",
-		"sops_azure_kv",
-		"sops_hc_vault",
-		"sops_age"
+		"pgp",
+		"kms",
+		"gcp_kms",
+		"azure_kv",
+		"hc_vault",
+		"age"
 	);
 
 	private boolean sopsFileWithInlineConfigDetected(@NotNull final String content) {
