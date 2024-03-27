@@ -68,7 +68,7 @@ public class ExecutionUtil {
 		});
 	}
 
-	public void encrypt(final Project project, VirtualFile file, final Runnable successHandler, final Runnable failureHandler) {
+	public void encrypt(final Project project, final VirtualFile file, final Runnable successHandler, final Runnable failureHandler) {
 		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
 
 		command.addParameter("-e");
@@ -137,7 +137,7 @@ public class ExecutionUtil {
 		final List<String> environmentList = Arrays.stream(environmentString)
 			.map(String::trim)
 			.filter(Predicate.not(String::isBlank))
-			.collect(Collectors.toList());
+			.toList();
 
 		command.withEnvironment(
 			EnvironmentUtil.parseEnv(environmentList.toArray(String[]::new))

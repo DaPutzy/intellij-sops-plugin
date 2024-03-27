@@ -1,7 +1,7 @@
 package com.github.daputzy.intellijsopsplugin.handler;
 
 import com.github.daputzy.intellijsopsplugin.file.FileUtil;
-import com.github.daputzy.intellijsopsplugin.file.LightVirtualFileWithCustomName;
+import com.github.daputzy.intellijsopsplugin.file.DecryptedSopsFileWithReference;
 import com.github.daputzy.intellijsopsplugin.sops.ExecutionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.*;
@@ -11,6 +11,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public class EditActionHandler extends ActionHandler {
 
@@ -22,49 +23,59 @@ public class EditActionHandler extends ActionHandler {
 		final String originalContent = FileUtil.getInstance().getContent(file);
 
 		ExecutionUtil.getInstance().decrypt(project, file, decryptedContent -> {
-			final VirtualFile inMemoryFile = new LightVirtualFileWithCustomName(
+			final VirtualFile inMemoryFile = new EditActionVirtualFile(
 				file,
-				FileUtil.getInstance().getFileType(file),
 				decryptedContent
 			);
 
 			ApplicationManager.getApplication().invokeLater(() -> {
 				final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
 
-				Arrays.stream(fileEditorManager.getOpenFiles())
-						.filter(vFile -> vFile instanceof LightVirtualFileWithCustomName)
-						.map(vFile -> (LightVirtualFileWithCustomName) vFile)
-						.filter(vFile -> vFile.getFilePath().equals(file.getPath()))
-						.findFirst().ifPresentOrElse(
-								existingFile -> fileEditorManager.openFile(existingFile, true),
-								() -> fileEditorManager.openEditor(new OpenFileDescriptor(project, inMemoryFile), true)
-						);
-			});
+				final Optional<EditActionVirtualFile> openFile = Arrays.stream(fileEditorManager.getOpenFiles())
+					.filter(EditActionVirtualFile.class::isInstance)
+					.map(EditActionVirtualFile.class::cast)
+					.filter(virtualFile -> virtualFile.getFilePath().equals(file.getPath()))
+					.findFirst();
 
-			final MessageBusConnection connection = project.getMessageBus().connect();
+				if (openFile.isPresent()) {
+					fileEditorManager.openFile(openFile.get(), true);
+				} else {
+					fileEditorManager.openFile(inMemoryFile, true);
 
-			connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
-				@Override
-				public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile closedFile) {
-					if (inMemoryFile.equals(closedFile)) {
-						// check if it is our file first, other files may not have a document
-						final String closedFileContent = FileUtil.getInstance().getDocument(closedFile).getText();
+					final MessageBusConnection connection = project.getMessageBus().connect();
+					connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
+						@Override
+						public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile closedFile) {
+							if (inMemoryFile.equals(closedFile)) {
+								// check if it is our file first, other files may not have a document
+								final String closedFileContent = FileUtil.getInstance().getDocument(closedFile).getText();
 
-						if (!closedFileContent.equals(decryptedContent)) {
-							ExecutionUtil.getInstance().encrypt(
-								project,
-								file,
-								// success
-								() -> file.refresh(true, false),
-								// failure
-								() -> FileUtil.getInstance().writeContentBlocking(file, originalContent)
-							);
+								if (!closedFileContent.equals(decryptedContent)) {
+									FileUtil.getInstance().writeContentBlocking(file, closedFileContent);
 
-							connection.disconnect();
+									ExecutionUtil.getInstance().encrypt(
+										project,
+										file,
+										// success
+										() -> file.refresh(true, false),
+										// failure
+										() -> FileUtil.getInstance().writeContentBlocking(file, originalContent)
+									);
+
+									connection.disconnect();
+								}
+							}
 						}
-					}
+					});
 				}
 			});
 		});
+	}
+
+	static class EditActionVirtualFile extends DecryptedSopsFileWithReference {
+
+		public EditActionVirtualFile(final VirtualFile original, final String content) {
+			super(original, content, "[edit]");
+		}
 	}
 }
