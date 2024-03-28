@@ -188,7 +188,7 @@ public class ExecutionUtil {
 		final List<String> environmentList = Arrays.stream(environmentString)
 			.map(String::trim)
 			.filter(Predicate.not(String::isBlank))
-			.collect(Collectors.toList());
+			.toList();
 
 		command.withEnvironment(
 			EnvironmentUtil.parseEnv(environmentList.toArray(String[]::new))

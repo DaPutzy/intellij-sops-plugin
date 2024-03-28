@@ -8,10 +8,6 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
-import com.intellij.openapi.fileTypes.PlainTextFileType;
-import com.intellij.openapi.fileTypes.UnknownFileType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ThrowableRunnable;
 import lombok.AccessLevel;
@@ -49,15 +45,5 @@ public class FileUtil {
 				throw new RuntimeException("Could not write content to file", e);
 			}
 		});
-	}
-
-	public FileType getFileType(final VirtualFile file) {
-		final FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(file.getName());
-
-		if (fileType instanceof UnknownFileType) {
-			return PlainTextFileType.INSTANCE;
-		}
-
-		return fileType;
 	}
 }
