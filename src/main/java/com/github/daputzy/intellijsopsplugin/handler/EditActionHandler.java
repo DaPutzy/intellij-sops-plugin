@@ -21,10 +21,7 @@ public class EditActionHandler extends ActionHandler {
 
 	public void handle() {
 		ExecutionUtil.getInstance().decrypt(project, file, decryptedContent -> {
-			final VirtualFile inMemoryFile = new EditActionVirtualFile(
-				file,
-				decryptedContent
-			);
+			final VirtualFile inMemoryFile = new EditActionVirtualFile(file, decryptedContent);
 
 			ApplicationManager.getApplication().invokeLater(() -> {
 				final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
@@ -52,9 +49,9 @@ public class EditActionHandler extends ActionHandler {
 									ExecutionUtil.getInstance().encrypt(
 										project,
 										file,
-                    closedFileContent,
+										closedFileContent,
 										// success
-										() -> file.refresh(true, false)
+										() -> file.refresh(false, false)
 									);
 
 									connection.disconnect();

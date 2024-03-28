@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import com.github.daputzy.intellijsopsplugin.settings.SettingsState;
 import com.intellij.execution.ExecutionException;
@@ -89,7 +88,6 @@ public class ExecutionUtil {
 		// create temp files
 		final Path tempDirectory = Files.createTempDirectory("simple-sops-edit");
 		final Path scriptFile = Files.createTempFile(tempDirectory, "script", scriptSuffix);
-		final Path contentFile = Files.createTempFile(tempDirectory, "content", null);
 
 		// make sure temp directory is cleaned on application exit
 		FileUtils.forceDeleteOnExit(tempDirectory.toFile());
@@ -100,21 +98,14 @@ public class ExecutionUtil {
 		}
 
 		final List<String> scriptFileContent = SystemUtils.IS_OS_WINDOWS ?
-			List.of("@powershell.exe -NoProfile -Command \"Copy-Item -Path \\\"" + contentFile.toAbsolutePath() + "\\\" -Destination \\\"%1\\\"\"") :
+			List.of("@powershell.exe -NoProfile -Command \"$env:SOPS_CONTENT | Out-File \\\"%1\\\"\"") :
 			List.of(
 				"#!/usr/bin/env sh",
-				"set -euo pipefail",
-				"cat \"%s\" > \"$1\"".formatted(contentFile)
+				"set -eu",
+				"echo \"$SOPS_CONTENT\" > \"$1\""
 			);
 
 		Files.write(scriptFile, scriptFileContent, file.getCharset(), StandardOpenOption.APPEND);
-		Files.writeString(contentFile, newContent, file.getCharset(), StandardOpenOption.APPEND);
-
-		log.debug("temp dir: {}", tempDirectory.toAbsolutePath());
-		log.debug("temp content file: {}", contentFile.toAbsolutePath());
-		log.trace("temp content file content: {}", newContent);
-		log.debug("temp script file: {}", scriptFile.toAbsolutePath());
-		log.trace("temp script file content: {}", scriptFileContent);
 
 		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
 
@@ -122,6 +113,7 @@ public class ExecutionUtil {
 		final String editorPath = scriptFile.toAbsolutePath().toString().replace("\\", "\\\\");
 
 		command.withEnvironment("EDITOR", editorPath);
+		command.withEnvironment("SOPS_CONTENT", newContent);
 		command.addParameter(file.getName());
 
 		final StringBuffer stderr = new StringBuffer();

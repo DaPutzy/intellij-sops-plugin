@@ -22,10 +22,7 @@ public class ReplaceActionHandler extends ActionHandler {
 	}
 
 	public void handle() {
-		final VirtualFile inMemoryFile = new ReplaceActionVirtualFile(
-			file,
-			StringUtils.EMPTY
-		);
+		final VirtualFile inMemoryFile = new ReplaceActionVirtualFile(file, StringUtils.EMPTY);
 
 		ApplicationManager.getApplication().invokeLater(() -> {
 			final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
@@ -53,9 +50,9 @@ public class ReplaceActionHandler extends ActionHandler {
 								ExecutionUtil.getInstance().encrypt(
 									project,
 									file,
-                  closedFileContent,
+									closedFileContent,
 									// success
-									() -> file.refresh(true, false)
+									() -> file.refresh(false, false)
 								);
 
 								connection.disconnect();
