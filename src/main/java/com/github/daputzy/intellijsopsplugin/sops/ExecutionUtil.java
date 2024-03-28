@@ -1,6 +1,9 @@
 package com.github.daputzy.intellijsopsplugin.sops;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -24,8 +27,13 @@ import com.intellij.util.EnvironmentUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExecutionUtil {
 
@@ -68,11 +76,52 @@ public class ExecutionUtil {
 		});
 	}
 
-	public void encrypt(final Project project, final VirtualFile file, final Runnable successHandler, final Runnable failureHandler) {
+	@SneakyThrows
+	public void encrypt(
+		final Project project,
+		final VirtualFile file,
+		final String newContent,
+		final Runnable successHandler
+	) {
+		// get script suffix
+		final String scriptSuffix = SystemUtils.IS_OS_WINDOWS ? ".cmd" : ".sh";
+
+		// create temp files
+		final Path tempDirectory = Files.createTempDirectory("simple-sops-edit");
+		final Path scriptFile = Files.createTempFile(tempDirectory, "script", scriptSuffix);
+		final Path contentFile = Files.createTempFile(tempDirectory, "content", null);
+
+		// make sure temp directory is cleaned on application exit
+		FileUtils.forceDeleteOnExit(tempDirectory.toFile());
+
+		// make sure script is executable
+		if (!scriptFile.toFile().setExecutable(true)) {
+			throw new IllegalStateException("Could not make script file executable");
+		}
+
+		final List<String> scriptFileContent = SystemUtils.IS_OS_WINDOWS ?
+			List.of("@powershell.exe -NoProfile -Command \"Copy-Item -Path \\\"" + contentFile.toAbsolutePath() + "\\\" -Destination \\\"%1\\\"\"") :
+			List.of(
+				"#!/usr/bin/env sh",
+				"set -euo pipefail",
+				"cat \"%s\" > \"$1\"".formatted(contentFile)
+			);
+
+		Files.write(scriptFile, scriptFileContent, file.getCharset(), StandardOpenOption.APPEND);
+		Files.writeString(contentFile, newContent, file.getCharset(), StandardOpenOption.APPEND);
+
+		log.debug("temp dir: {}", tempDirectory.toAbsolutePath());
+		log.debug("temp content file: {}", contentFile.toAbsolutePath());
+		log.trace("temp content file content: {}", newContent);
+		log.debug("temp script file: {}", scriptFile.toAbsolutePath());
+		log.trace("temp script file content: {}", scriptFileContent);
+
 		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
 
-		command.addParameter("-e");
-		command.addParameter("-i");
+		// escape twice for windows because of ENV variable parsing
+		final String editorPath = scriptFile.toAbsolutePath().toString().replace("\\", "\\\\");
+
+		command.withEnvironment("EDITOR", editorPath);
 		command.addParameter(file.getName());
 
 		final StringBuffer stderr = new StringBuffer();
@@ -82,8 +131,10 @@ public class ExecutionUtil {
 			public void processTerminated(@NotNull ProcessEvent event) {
 				notifyOnError(project, stderr);
 
+				// clean up the temporary files
+				FileUtils.deleteQuietly(tempDirectory.toFile());
+
 				if (event.getExitCode() != 0) {
-					failureHandler.run();
 					return;
 				}
 
