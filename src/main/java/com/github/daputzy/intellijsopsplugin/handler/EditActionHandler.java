@@ -18,8 +18,6 @@ public class EditActionHandler extends ActionHandler {
 	}
 
 	public void handle() {
-		final String originalContent = FileUtil.getInstance().getContent(file);
-
 		ExecutionUtil.getInstance().decrypt(project, file, decryptedContent -> {
 			final VirtualFile inMemoryFile = new LightVirtualFile(
 				file.getName(),
@@ -39,16 +37,12 @@ public class EditActionHandler extends ActionHandler {
 						final String closedFileContent = FileUtil.getInstance().getDocument(closedFile).getText();
 
 						if (!closedFileContent.equals(decryptedContent)) {
-							ExecutionUtil.getInstance().replaceContent(
+							ExecutionUtil.getInstance().encrypt(
 								project,
 								file,
 								closedFileContent,
 								// success
-								() -> {
-									file.refresh(false, false);
-								},
-								// failure
-								() -> {}
+								() -> file.refresh(true, false)
 							);
 
 							connection.disconnect();

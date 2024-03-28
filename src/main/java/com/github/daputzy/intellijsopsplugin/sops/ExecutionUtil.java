@@ -1,10 +1,11 @@
 package com.github.daputzy.intellijsopsplugin.sops;
 
-import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -26,8 +27,13 @@ import com.intellij.util.EnvironmentUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExecutionUtil {
 
@@ -70,61 +76,68 @@ public class ExecutionUtil {
 		});
 	}
 
-	public void replaceContent(final Project project, VirtualFile file, String newContent, final Runnable successHandler, final Runnable failureHandler) {
-		// Create a temporary file to hold the new content
-		File newContentFile = null;
-        try {
-			newContentFile = File.createTempFile(file.getName(), ".tmp");
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-        }
-		try (FileWriter writer = new FileWriter(newContentFile)) {
-			writer.write(newContent);
-		} catch (IOException e) {
-			newContentFile.delete();
-			throw new RuntimeException(e);
+	@SneakyThrows
+	public void encrypt(
+		final Project project,
+		final VirtualFile file,
+		final String newContent,
+		final Runnable successHandler
+	) {
+		// get script suffix
+		final String scriptSuffix = SystemUtils.IS_OS_WINDOWS ? ".cmd" : ".sh";
+
+		// create temp files
+		final Path tempDirectory = Files.createTempDirectory("simple-sops-edit");
+		final Path scriptFile = Files.createTempFile(tempDirectory, "script", scriptSuffix);
+		final Path contentFile = Files.createTempFile(tempDirectory, "content", null);
+
+		// make sure temp directory is cleaned on application exit
+		FileUtils.forceDeleteOnExit(tempDirectory.toFile());
+
+		// make sure script is executable
+		if (!scriptFile.toFile().setExecutable(true)) {
+			throw new IllegalStateException("Could not make script file executable");
 		}
 
-		// Create a temporary bash script to act as the sops EDITOR, which will replace the file with the new content
-        File tempScript = null;
-        try {
-            tempScript = File.createTempFile("sops-editor-", ".sh");
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-        }
-        tempScript.setExecutable(true);
-		try (FileWriter writer = new FileWriter(tempScript)) {
-			writer.write("#!/bin/sh\n");
-			writer.write("cp "+newContentFile.getPath()+" \"$1\"\n");
-		} catch (IOException e) {
-			tempScript.delete();
-            throw new RuntimeException(e);
-        }
+		final List<String> scriptFileContent = SystemUtils.IS_OS_WINDOWS ?
+			List.of("@powershell.exe -NoProfile -Command \"Copy-Item -Path \\\"" + contentFile.toAbsolutePath() + "\\\" -Destination \\\"%1\\\"\"") :
+			List.of(
+				"#!/usr/bin/env sh",
+				"set -euo pipefail",
+				"cat \"%s\" > \"$1\"".formatted(contentFile)
+			);
+
+		Files.write(scriptFile, scriptFileContent, file.getCharset(), StandardOpenOption.APPEND);
+		Files.writeString(contentFile, newContent, file.getCharset(), StandardOpenOption.APPEND);
+
+		log.debug("temp dir: {}", tempDirectory.toAbsolutePath());
+		log.debug("temp content file: {}", contentFile.toAbsolutePath());
+		log.trace("temp content file content: {}", newContent);
+		log.debug("temp script file: {}", scriptFile.toAbsolutePath());
+		log.trace("temp script file content: {}", scriptFileContent);
 
 		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
 
-		command.addParameter(file.getName());
-		command.withEnvironment("EDITOR", tempScript.getAbsolutePath());
+		// escape twice for windows because of ENV variable parsing
+		final String editorPath = scriptFile.toAbsolutePath().toString().replace("\\", "\\\\");
 
+		command.withEnvironment("EDITOR", editorPath);
+		command.addParameter(file.getName());
 
 		final StringBuffer stderr = new StringBuffer();
-
-		File finalNewContentFile = newContentFile;
-		File finalTempScript = tempScript;
 
 		run(command, new ProcessAdapter() {
 			@Override
 			public void processTerminated(@NotNull ProcessEvent event) {
 				notifyOnError(project, stderr);
 
-				// Clean up the temporary files
-				finalNewContentFile.delete();
-				finalTempScript.delete();
+				// clean up the temporary files
+				FileUtils.deleteQuietly(tempDirectory.toFile());
 
 				if (event.getExitCode() != 0) {
-					failureHandler.run();
 					return;
 				}
+
 				successHandler.run();
 			}
 

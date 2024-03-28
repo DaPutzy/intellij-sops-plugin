@@ -24,6 +24,7 @@ public class DetectionUtil {
 		"version"
 	);
 
+	// https://github.com/getsops/sops/blob/d8e8809bf92a47e0b2f742b9a43c3ab713acfd6a/stores/stores.go#L63-L70
 	public static final List<String> SOPS_INLINE_CONFIG_KEYWORDS = List.of(
 		"pgp",
 		"kms",
@@ -51,7 +52,7 @@ public class DetectionUtil {
 	}
 
 	public boolean sopsFileDetected(@NotNull final Project project, @NotNull final VirtualFile file) {
-		return this.sopsFileWithConfigFileDetected(project, file) ||
-			this.sopsFileWithInlineConfigDetected(FileUtil.getInstance().getContent(file));
+		return this.sopsFileWithInlineConfigDetected(FileUtil.getInstance().getContent(file)) ||
+			this.sopsFileWithConfigFileDetected(project, file);
 	}
 }

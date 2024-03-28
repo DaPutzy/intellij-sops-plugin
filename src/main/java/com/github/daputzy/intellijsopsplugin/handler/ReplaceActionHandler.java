@@ -19,8 +19,6 @@ public class ReplaceActionHandler extends ActionHandler {
 	}
 
 	public void handle() {
-		final String originalContent = FileUtil.getInstance().getContent(file);
-
 		final VirtualFile inMemoryFile = new LightVirtualFile(
 			file.getName(),
 			FileUtil.getInstance().getFileType(file),
@@ -39,16 +37,12 @@ public class ReplaceActionHandler extends ActionHandler {
 					final String closedFileContent = FileUtil.getInstance().getDocument(closedFile).getText();
 
 					if (!closedFileContent.isEmpty()) {
-						FileUtil.getInstance().writeContentBlocking(file, closedFileContent);
-
-						ExecutionUtil.getInstance().replaceContent(
+						ExecutionUtil.getInstance().encrypt(
 							project,
 							file,
 							closedFileContent,
 							// success
-							() -> file.refresh(false, false),
-							// failure
-							() -> {}
+							() -> file.refresh(true, false)
 						);
 
 						connection.disconnect();
