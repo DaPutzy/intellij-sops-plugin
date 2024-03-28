@@ -16,9 +16,10 @@
 	<description>Allows you to simply edit a Sops file via a button or action.</description>
 
 	<change-notes><![CDATA[
-		<h2>Patch</h2>
+		<h2>Minor</h2>
 		<ul>
-			<li>Add support for 2024.1</li>
+			<li>Added action "Simple Sops View" so users can view a sops file.</li>
+			<li>All actions now reuse already opened editor tabs.</li>
 		</ul>
 	]]></change-notes>
 
@@ -43,6 +44,8 @@
 	</extensions>
 
 	<actions>
+		<action id="com.github.daputzy.intellijsopsplugin.action.ViewSopsAction"
+				class="com.github.daputzy.intellijsopsplugin.action.ViewSopsAction" text="Simple Sops View"/>
 		<action id="com.github.daputzy.intellijsopsplugin.action.EditSopsAction"
 			class="com.github.daputzy.intellijsopsplugin.action.EditSopsAction" text="Simple Sops Edit"/>
 		<action id="com.github.daputzy.intellijsopsplugin.action.ReplaceSopsAction"
