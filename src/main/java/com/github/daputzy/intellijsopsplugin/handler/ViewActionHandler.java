@@ -22,6 +22,7 @@ public class ViewActionHandler extends ActionHandler {
 				file,
 				decryptedContent
 			);
+			inMemoryFile.setWritable(false);
 
 			ApplicationManager.getApplication().invokeLater(() -> {
 				final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
