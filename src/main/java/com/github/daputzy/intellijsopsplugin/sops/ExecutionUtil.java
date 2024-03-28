@@ -1,5 +1,6 @@
 package com.github.daputzy.intellijsopsplugin.sops;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,12 +28,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
-@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExecutionUtil {
 
@@ -41,6 +40,13 @@ public class ExecutionUtil {
 
 	private static final String DEPRECATION_WARNING = "Deprecation Warning";
 
+	/**
+	 * decrypts given file
+	 *
+	 * @param project        project
+	 * @param file           file
+	 * @param successHandler called on success with decrypted content
+	 */
 	public void decrypt(final Project project, VirtualFile file, final Consumer<String> successHandler) {
 		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
 
@@ -75,8 +81,59 @@ public class ExecutionUtil {
 		});
 	}
 
-	@SneakyThrows
-	public void encrypt(
+	/**
+	 * encrypts given file
+	 *
+	 * @param project        project
+	 * @param file           file
+	 * @param successHandler called on success
+	 * @param failureHandler called on failure
+	 */
+	public void encrypt(final Project project, final VirtualFile file, final Runnable successHandler, final Runnable failureHandler) {
+		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
+
+		command.addParameter("-e");
+		command.addParameter("-i");
+		command.addParameter(file.getName());
+
+		final StringBuffer stderr = new StringBuffer();
+
+		run(command, new ProcessAdapter() {
+			@Override
+			public void processTerminated(@NotNull ProcessEvent event) {
+				notifyOnError(project, stderr);
+
+				if (event.getExitCode() != 0) {
+					failureHandler.run();
+					return;
+				}
+
+				successHandler.run();
+			}
+
+			@Override
+			public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
+				if (
+					ProcessOutputType.isStderr(outputType) &&
+						event.getText() != null &&
+						!event.getText().contains(DEPRECATION_WARNING)
+				) {
+					stderr.append(event.getText());
+				}
+			}
+		});
+	}
+
+	/**
+	 * edits encrypted file with given content
+	 *
+	 * @param project        project
+	 * @param file           file
+	 * @param newContent     new content
+	 * @param successHandler called on success
+	 */
+	@SneakyThrows(IOException.class)
+	public void edit(
 		final Project project,
 		final VirtualFile file,
 		final String newContent,
