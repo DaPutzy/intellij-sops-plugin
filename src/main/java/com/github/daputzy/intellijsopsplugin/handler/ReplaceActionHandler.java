@@ -42,7 +42,7 @@ public class ReplaceActionHandler extends ActionHandler {
 							file,
 							closedFileContent,
 							// success
-							() -> file.refresh(true, false)
+							() -> file.refresh(false, false)
 						);
 
 						connection.disconnect();
