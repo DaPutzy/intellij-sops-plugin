@@ -115,8 +115,8 @@ public class ExecutionUtil {
 			public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
 				if (
 					ProcessOutputType.isStderr(outputType) &&
-						event.getText() != null &&
-						!event.getText().contains(DEPRECATION_WARNING)
+					event.getText() != null &&
+					!event.getText().contains(DEPRECATION_WARNING)
 				) {
 					stderr.append(event.getText());
 				}
@@ -139,15 +139,12 @@ public class ExecutionUtil {
 		final String newContent,
 		final Runnable successHandler
 	) {
-		// get script suffix
+		// create script temp file
 		final String scriptSuffix = SystemUtils.IS_OS_WINDOWS ? ".cmd" : ".sh";
+		final Path scriptFile = Files.createTempFile("sops-editor-script", scriptSuffix);
 
-		// create temp files
-		final Path tempDirectory = Files.createTempDirectory("simple-sops-edit");
-		final Path scriptFile = Files.createTempFile(tempDirectory, "script", scriptSuffix);
-
-		// make sure temp directory is cleaned on application exit
-		FileUtils.forceDeleteOnExit(tempDirectory.toFile());
+		// make sure temp file is cleaned on application exit
+		FileUtils.forceDeleteOnExit(scriptFile.toFile());
 
 		// make sure script is executable
 		if (!scriptFile.toFile().setExecutable(true)) {
@@ -180,8 +177,8 @@ public class ExecutionUtil {
 			public void processTerminated(@NotNull ProcessEvent event) {
 				notifyOnError(project, stderr);
 
-				// clean up the temporary files
-				FileUtils.deleteQuietly(tempDirectory.toFile());
+				// clean up the temp file
+				FileUtils.deleteQuietly(scriptFile.toFile());
 
 				if (event.getExitCode() != 0) {
 					return;
