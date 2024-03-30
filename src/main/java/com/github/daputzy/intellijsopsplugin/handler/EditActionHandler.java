@@ -21,6 +21,8 @@ public class EditActionHandler extends ActionHandler {
 
 	public void handle() {
 		ExecutionUtil.getInstance().decrypt(project, file, decryptedContent -> {
+			final String originalContent = FileUtil.getInstance().getContent(file);
+
 			final VirtualFile inMemoryFile = new EditActionVirtualFile(file, decryptedContent);
 
 			ApplicationManager.getApplication().invokeLater(() -> {
@@ -51,7 +53,9 @@ public class EditActionHandler extends ActionHandler {
 										file,
 										closedFileContent,
 										// success
-										() -> file.refresh(false, false)
+										() -> file.refresh(false, false),
+										// failure
+										() -> FileUtil.getInstance().writeContentBlocking(file, originalContent)
 									);
 
 									connection.disconnect();

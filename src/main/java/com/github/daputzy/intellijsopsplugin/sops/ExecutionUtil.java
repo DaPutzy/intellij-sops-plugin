@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -18,8 +19,6 @@ import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessListener;
 import com.intellij.execution.process.ProcessOutputType;
-import com.intellij.notification.NotificationGroupManager;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -29,6 +28,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,8 +38,6 @@ public class ExecutionUtil {
 
 	@Getter(lazy = true)
 	private static final ExecutionUtil instance = new ExecutionUtil();
-
-	private static final String DEPRECATION_WARNING = "Deprecation Warning";
 
 	/**
 	 * decrypts given file
@@ -53,32 +52,27 @@ public class ExecutionUtil {
 		command.addParameter("-d");
 		command.addParameter(file.getName());
 
-		final StringBuffer stdout = new StringBuffer();
-		final StringBuffer stderr = new StringBuffer();
+		run(
+			command,
+			new ErrorNotificationProcessListener(project),
+			new ProcessAdapter() {
+				private final StringBuffer stdout = new StringBuffer();
 
-		run(command, new ProcessAdapter() {
-			@Override
-			public void processTerminated(@NotNull ProcessEvent event) {
-				notifyOnError(project, stderr);
-
-				if (event.getExitCode() != 0) {
-					return;
+				@Override
+				public void processTerminated(@NotNull final ProcessEvent event) {
+					if (event.getExitCode() == 0) {
+						successHandler.accept(stdout.toString());
+					}
 				}
 
-				successHandler.accept(stdout.toString());
-			}
-
-			@Override
-			public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
-				if (ProcessOutputType.isStderr(outputType) && event.getText() != null) {
-					stderr.append(event.getText());
-				}
-
-				if (ProcessOutputType.isStdout(outputType) && event.getText() != null) {
-					stdout.append(event.getText());
+				@Override
+				public void onTextAvailable(@NotNull final ProcessEvent event, @NotNull final Key outputType) {
+					if (ProcessOutputType.isStdout(outputType) && event.getText() != null) {
+						stdout.append(event.getText());
+					}
 				}
 			}
-		});
+		);
 	}
 
 	/**
@@ -89,39 +83,32 @@ public class ExecutionUtil {
 	 * @param successHandler called on success
 	 * @param failureHandler called on failure
 	 */
-	public void encrypt(final Project project, final VirtualFile file, final Runnable successHandler, final Runnable failureHandler) {
+	public void encrypt(
+		final Project project,
+		final VirtualFile file,
+		final Runnable successHandler,
+		final Runnable failureHandler
+	) {
 		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
 
 		command.addParameter("-e");
 		command.addParameter("-i");
 		command.addParameter(file.getName());
 
-		final StringBuffer stderr = new StringBuffer();
-
-		run(command, new ProcessAdapter() {
-			@Override
-			public void processTerminated(@NotNull ProcessEvent event) {
-				notifyOnError(project, stderr);
-
-				if (event.getExitCode() != 0) {
-					failureHandler.run();
-					return;
-				}
-
-				successHandler.run();
-			}
-
-			@Override
-			public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
-				if (
-					ProcessOutputType.isStderr(outputType) &&
-					event.getText() != null &&
-					!event.getText().contains(DEPRECATION_WARNING)
-				) {
-					stderr.append(event.getText());
+		run(
+			command,
+			new ErrorNotificationProcessListener(project),
+			new ProcessAdapter() {
+				@Override
+				public void processTerminated(@NotNull final ProcessEvent event) {
+					if (event.getExitCode() == 0) {
+						successHandler.run();
+					} else {
+						failureHandler.run();
+					}
 				}
 			}
-		});
+		);
 	}
 
 	/**
@@ -131,13 +118,15 @@ public class ExecutionUtil {
 	 * @param file           file
 	 * @param newContent     new content
 	 * @param successHandler called on success
+	 * @param failureHandler called on failure
 	 */
 	@SneakyThrows(IOException.class)
 	public void edit(
 		final Project project,
 		final VirtualFile file,
 		final String newContent,
-		final Runnable successHandler
+		final Runnable successHandler,
+		final Runnable failureHandler
 	) {
 		// create script temp file
 		final String scriptSuffix = SystemUtils.IS_OS_WINDOWS ? ".cmd" : ".sh";
@@ -151,12 +140,15 @@ public class ExecutionUtil {
 			throw new IllegalStateException("Could not make script file executable");
 		}
 
+		final String startIdentifier = "simple-sops-edit-ready" + RandomStringUtils.randomAlphanumeric(32);
+
 		final List<String> scriptFileContent = SystemUtils.IS_OS_WINDOWS ?
-			List.of("@powershell.exe -NoProfile -Command \"$env:SOPS_CONTENT | Out-File \\\"%1\\\"\"") :
+			List.of("@powershell.exe -NoProfile -Command \"Write-Output '" + startIdentifier + "'; $stdin = [System.Console]::In; $inputContent = $stdin.ReadToEnd(); $inputContent | Out-File \\\"%1\\\"\"") :
 			List.of(
 				"#!/usr/bin/env sh",
 				"set -eu",
-				"echo \"$SOPS_CONTENT\" > \"$1\""
+				"printf '%s'".formatted(startIdentifier),
+				"cat - > \"$1\""
 			);
 
 		Files.write(scriptFile, scriptFileContent, file.getCharset(), StandardOpenOption.APPEND);
@@ -167,51 +159,44 @@ public class ExecutionUtil {
 		final String editorPath = scriptFile.toAbsolutePath().toString().replace("\\", "\\\\");
 
 		command.withEnvironment("EDITOR", editorPath);
-		command.withEnvironment("SOPS_CONTENT", newContent);
 		command.addParameter(file.getName());
 
-		final StringBuffer stderr = new StringBuffer();
+		run(
+			command,
+			new ErrorNotificationProcessListener(project),
+			new ProcessAdapter() {
+				private final AtomicBoolean failed = new AtomicBoolean(false);
 
-		run(command, new ProcessAdapter() {
-			@Override
-			public void processTerminated(@NotNull ProcessEvent event) {
-				notifyOnError(project, stderr);
+				@Override
+				public void processTerminated(@NotNull final ProcessEvent event) {
+					// clean up the temp file
+					FileUtils.deleteQuietly(scriptFile.toFile());
 
-				// clean up the temp file
-				FileUtils.deleteQuietly(scriptFile.toFile());
-
-				if (event.getExitCode() != 0) {
-					return;
+					if (event.getExitCode() == 0 && !failed.get()) {
+						successHandler.run();
+					} else {
+						failureHandler.run();
+					}
 				}
 
-				successHandler.run();
-			}
+				@Override
+				@SneakyThrows(IOException.class)
+				public void onTextAvailable(@NotNull final ProcessEvent event, @NotNull final Key outputType) {
+					if (null != event.getText() && startIdentifier.equals(event.getText().trim())) {
+						IOUtils.write(newContent, event.getProcessHandler().getProcessInput(), file.getCharset());
+						event.getProcessHandler().getProcessInput().close();
+					}
 
-			@Override
-			public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
-				if (
-					ProcessOutputType.isStderr(outputType) &&
-					event.getText() != null &&
-					!event.getText().contains(DEPRECATION_WARNING)
-				) {
-					stderr.append(event.getText());
+					if (ProcessOutputType.isStderr(outputType)) {
+						failed.set(true);
+						event.getProcessHandler().destroyProcess();
+					}
 				}
 			}
-		});
+		);
 	}
 
-	private void notifyOnError(final Project project, final StringBuffer stderr) {
-		final String error = stderr.toString();
-
-		if (!error.isBlank()) {
-			NotificationGroupManager.getInstance()
-				.getNotificationGroup("com.github.daputzy.intellijsopsplugin")
-				.createNotification("Sops error", error, NotificationType.ERROR)
-				.notify(project);
-		}
-	}
-
-	private void run(final GeneralCommandLine command, final ProcessListener listener) {
+	private void run(final GeneralCommandLine command, final ProcessListener... listener) {
 		final OSProcessHandler processHandler;
 		try {
 			processHandler = new OSProcessHandler(command);
@@ -219,7 +204,8 @@ public class ExecutionUtil {
 			throw new RuntimeException("Could not execute sops command", e);
 		}
 
-		processHandler.addProcessListener(listener);
+		Arrays.stream(listener).forEach(processHandler::addProcessListener);
+
 		processHandler.startNotify();
 	}
 
