@@ -18,10 +18,7 @@ public class ViewActionHandler extends ActionHandler {
 
 	public void handle() {
 		ExecutionUtil.getInstance().decrypt(project, file, decryptedContent -> {
-			final ViewActionVirtualFile inMemoryFile = new ViewActionVirtualFile(
-				file,
-				decryptedContent
-			);
+			final ViewActionVirtualFile inMemoryFile = new ViewActionVirtualFile(file, decryptedContent);
 			inMemoryFile.setWritable(false);
 
 			ApplicationManager.getApplication().invokeLater(() -> {

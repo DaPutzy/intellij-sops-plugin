@@ -2,9 +2,6 @@ package com.github.daputzy.intellijsopsplugin.sops;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,8 +26,6 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -120,7 +115,6 @@ public class ExecutionUtil {
 	 * @param successHandler called on success
 	 * @param failureHandler called on failure
 	 */
-	@SneakyThrows(IOException.class)
 	public void edit(
 		final Project project,
 		final VirtualFile file,
@@ -128,35 +122,15 @@ public class ExecutionUtil {
 		final Runnable successHandler,
 		final Runnable failureHandler
 	) {
-		// create script temp file
-		final String scriptSuffix = SystemUtils.IS_OS_WINDOWS ? ".cmd" : ".sh";
-		final Path scriptFile = Files.createTempFile("sops-editor-script", scriptSuffix);
-
-		// make sure temp file is cleaned on application exit
-		FileUtils.forceDeleteOnExit(scriptFile.toFile());
-
-		// make sure script is executable
-		if (!scriptFile.toFile().setExecutable(true)) {
-			throw new IllegalStateException("Could not make script file executable");
-		}
-
-		final String startIdentifier = "simple-sops-edit-ready" + RandomStringUtils.randomAlphanumeric(32);
-
-		final List<String> scriptFileContent = SystemUtils.IS_OS_WINDOWS ?
-			List.of("@powershell.exe -NoProfile -Command \"Write-Output '" + startIdentifier + "'; $stdin = [System.Console]::In; $inputContent = $stdin.ReadToEnd(); $inputContent | Out-File \\\"%1\\\"\"") :
-			List.of(
-				"#!/usr/bin/env sh",
-				"set -eu",
-				"printf '%s'".formatted(startIdentifier),
-				"cat - > \"$1\""
-			);
-
-		Files.write(scriptFile, scriptFileContent, file.getCharset(), StandardOpenOption.APPEND);
+		final ScriptUtil.ScriptFiles scriptFiles = ScriptUtil.getInstance().createScriptFiles();
 
 		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
 
-		// escape twice for windows because of ENV variable parsing
-		final String editorPath = scriptFile.toAbsolutePath().toString().replace("\\", "\\\\");
+		final String editorPath = scriptFiles.script().toAbsolutePath().toString()
+			// escape twice for windows because of ENV variable parsing
+			.replace("\\", "\\\\")
+			// escape whitespaces
+			.replace(" ", "\\ ");
 
 		command.withEnvironment("EDITOR", editorPath);
 		command.addParameter(file.getName());
@@ -169,8 +143,8 @@ public class ExecutionUtil {
 
 				@Override
 				public void processTerminated(@NotNull final ProcessEvent event) {
-					// clean up the temp file
-					FileUtils.deleteQuietly(scriptFile.toFile());
+					// clean up the temporary files
+					FileUtils.deleteQuietly(scriptFiles.directory().toFile());
 
 					if (event.getExitCode() == 0 && !failed.get()) {
 						successHandler.run();
@@ -182,14 +156,15 @@ public class ExecutionUtil {
 				@Override
 				@SneakyThrows(IOException.class)
 				public void onTextAvailable(@NotNull final ProcessEvent event, @NotNull final Key outputType) {
-					if (null != event.getText() && startIdentifier.equals(event.getText().trim())) {
+					if (null != event.getText() && ScriptUtil.INPUT_START_IDENTIFIER.equals(event.getText().trim())) {
 						IOUtils.write(newContent, event.getProcessHandler().getProcessInput(), file.getCharset());
 						event.getProcessHandler().getProcessInput().close();
 					}
 
 					if (ProcessOutputType.isStderr(outputType)) {
-						failed.set(true);
 						event.getProcessHandler().destroyProcess();
+						// destroy process is apparently perfectly fine and exit code is 0
+						failed.set(true);
 					}
 				}
 			}
