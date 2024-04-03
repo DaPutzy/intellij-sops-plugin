@@ -16,10 +16,10 @@
 	<description>Allows you to simply edit a Sops file via a button or action.</description>
 
 	<change-notes><![CDATA[
-		<h2>Minor</h2>
+		<h2>Major</h2>
 		<ul>
-			<li>Added action "Simple Sops View" so users can view a sops file.</li>
-			<li>All actions now reuse already opened editor tabs.</li>
+			<li>Action "Simple Sops Edit" now actually edits the existing file and will respect settings from within the encrypted file.</li>
+			<li>The plugin no longer necessarily requires a sops config (<pre>.sops.yaml</pre>), however it is still strongly recommended.</li>
 		</ul>
 	]]></change-notes>
 
