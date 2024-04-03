@@ -19,7 +19,7 @@
 		<h2>Major</h2>
 		<ul>
 			<li>Action "Simple Sops Edit" now actually edits the existing file and will respect settings from within the encrypted file.</li>
-			<li>The plugin no longer necessarily requires a sops config (<pre>.sops.yaml</pre>), however it is still strongly recommended.</li>
+			<li>The plugin no longer necessarily requires a sops config (.sops.yaml), however it is still strongly recommended.</li>
 		</ul>
 	]]></change-notes>
 
