@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
-You should have sops installed and configured on your system.
-On Windows `powershell` is required (should be available in anything >= Win 7).
+* You should have sops installed and configured on your system.
+* On Windows `powershell` is required (should be available in anything >= Win 7).
 
 ## Settings
 
@@ -19,8 +19,8 @@ When a sops file is "detected" by the plugin, a banner is shown. It allows you t
 
 | Action  | Description                       | CLI equivalent (loosely)           | Requirements                                                                                                                                                                                                     |
 |---------|-----------------------------------|------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| view    | decrypts and displays content     | `sops --decrypt <file>`            | sops needs to be able to decrypt the file i.e. provide the corresponding environment variables or a `.sops.yaml`                                                                                                 |
-| edit    | allows you to change the content  | `sops <file>`                      | sops needs to be able to edit the file  i.e. sops will use the available information from the encrypted file, but some environment variables or a `.sops.yaml` may still be required                             |
-| replace | allows you to replace the content | `sops --encrypt --in-place <file>` | sops needs to be able to encrypt content i.e. sops will use the file ending of the existing file to figure our the file type, but some environment variables or a `.sops.yaml` are still required for encryption |
+| view    | decrypts and displays content     | `sops --decrypt <file>`            | sops needs to be able to decrypt the file<br> i.e. provide the corresponding environment variables or a `.sops.yaml`                                                                                             |
+| edit    | allows you to change the content  | `sops <file>`                      | sops needs to be able to edit the file<br> i.e. sops will use the available information from the encrypted file,<br> but some environment variables or a `.sops.yaml` may still be required                             |
+| replace | allows you to replace the content | `sops --encrypt --in-place <file>` | sops needs to be able to encrypt content<br> i.e. sops will use the file ending of the existing file to figure our the file type,<br> but some environment variables or a `.sops.yaml` are still required for encryption |
 
 Each of these actions can also be triggered by a shortcut, however no default shortcuts are assigned. To assign a shortcut just search for `sops` in `Settings` --> `Keymap`.
