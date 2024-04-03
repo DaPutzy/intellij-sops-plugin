@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.daputzy"
-version = "1.6.0"
+version = "2.0.0"
 
 repositories {
     mavenCentral()
@@ -28,8 +28,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("231.*")
-        untilBuild.set("241.*")
+        sinceBuild.set("231.8109.175")
     }
 
     signPlugin {
@@ -40,5 +39,6 @@ tasks {
 
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
+        channels.set(listOf("beta"))
     }
 }

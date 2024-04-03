@@ -1,28 +1,33 @@
 package com.github.daputzy.intellijsopsplugin;
 
+import javax.swing.JComponent;
 import java.util.function.Function;
 
-import com.github.daputzy.intellijsopsplugin.handler.EditActionHandler;
-import com.github.daputzy.intellijsopsplugin.handler.ReplaceActionHandler;
-import com.github.daputzy.intellijsopsplugin.handler.ViewActionHandler;
+import com.github.daputzy.intellijsopsplugin.action.SopsAction;
+import com.github.daputzy.intellijsopsplugin.action.EditSopsAction;
+import com.github.daputzy.intellijsopsplugin.action.ReplaceSopsAction;
+import com.github.daputzy.intellijsopsplugin.action.ViewSopsAction;
 import com.github.daputzy.intellijsopsplugin.sops.DetectionUtil;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotificationProvider;
-import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SopsNotificationProvider implements EditorNotificationProvider {
+
+	private static final SopsAction VIEW_SOPS_ACTION = new ViewSopsAction();
+	private static final SopsAction EDIT_SOPS_ACTION = new EditSopsAction();
+	private static final SopsAction REPLACE_SOPS_ACTION = new ReplaceSopsAction();
 
 	@Override
 	public @NotNull Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(
 		@NotNull final Project project,
 		@NotNull final VirtualFile file
 	) {
-		if (!DetectionUtil.getInstance().sopsFileDetected(project, file)) {
+		if (!DetectionUtil.getInstance().sopsFileDetected(file)) {
 			return __ -> null;
 		}
 
@@ -30,9 +35,9 @@ public class SopsNotificationProvider implements EditorNotificationProvider {
 			final EditorNotificationPanel panel = new EditorNotificationPanel();
 
 			panel.setText("Sops file detected");
-			panel.createActionLabel("View", new ViewActionHandler(project, file)::handle);
-			panel.createActionLabel("Edit", new EditActionHandler(project, file)::handle);
-			panel.createActionLabel("Replace", new ReplaceActionHandler(project, file)::handle);
+			panel.createActionLabel("View", () -> VIEW_SOPS_ACTION.handle(project, file));
+			panel.createActionLabel("Edit", () -> EDIT_SOPS_ACTION.handle(project, file));
+			panel.createActionLabel("Replace", () -> REPLACE_SOPS_ACTION.handle(project, file));
 
 			return panel;
 		};
