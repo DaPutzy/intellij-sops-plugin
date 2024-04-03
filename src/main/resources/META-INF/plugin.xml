@@ -55,6 +55,6 @@
 	<applicationListeners>
 		<listener
 			class="com.github.daputzy.intellijsopsplugin.SopsFileReadOnlyListener"
-			topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+			topic="com.intellij.openapi.fileEditor.FileOpenedSyncListener"/>
 	</applicationListeners>
 </idea-plugin>

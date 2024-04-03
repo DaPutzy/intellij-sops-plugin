@@ -6,13 +6,13 @@ import com.github.daputzy.intellijsopsplugin.settings.SettingsState;
 import com.github.daputzy.intellijsopsplugin.sops.DetectionUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.fileEditor.FileOpenedSyncListener;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.fileEditor.ex.FileEditorWithProvider;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-public class SopsFileReadOnlyListener implements FileEditorManagerListener {
+public class SopsFileReadOnlyListener implements FileOpenedSyncListener {
 
 	@Override
 	public void fileOpenedSync(@NotNull FileEditorManager source, @NotNull VirtualFile file, @NotNull List<FileEditorWithProvider> editorsWithProviders) {
@@ -20,7 +20,7 @@ public class SopsFileReadOnlyListener implements FileEditorManagerListener {
 			return;
 		}
 
-		if (DetectionUtil.getInstance().sopsFileDetected(source.getProject(), file)) {
+		if (DetectionUtil.getInstance().sopsFileDetected(file)) {
 			editorsWithProviders.stream()
 				.map(FileEditorWithProvider::getFileEditor)
 				.filter(TextEditor.class::isInstance)
