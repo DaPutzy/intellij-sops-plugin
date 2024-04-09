@@ -15,12 +15,30 @@ When you hover over the lightbulb a short description, an example and the defaul
 
 ## Functionality
 
-When a sops file is "detected" by the plugin, a banner is shown. It allows you to view, edit or replace the content. 
-
-| Action  | Description                       | CLI equivalent (loosely)           | Requirements                                                                                                                                                                                                     |
-|---------|-----------------------------------|------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| view    | decrypts and displays content     | `sops --decrypt <file>`            | sops needs to be able to decrypt the file<br> i.e. provide the corresponding environment variables or a `.sops.yaml`                                                                                             |
-| edit    | allows you to change the content  | `sops <file>`                      | sops needs to be able to edit the file<br> i.e. sops will use the available information from the encrypted file,<br> but some environment variables or a `.sops.yaml` may still be required                             |
-| replace | allows you to replace the content | `sops --encrypt --in-place <file>` | sops needs to be able to encrypt content<br> i.e. sops will use the file ending of the existing file to figure our the file type,<br> but some environment variables or a `.sops.yaml` are still required for encryption |
+When a sops file is "detected" by the plugin, a banner is shown. It allows you to view, edit or replace the content.
 
 Each of these actions can also be triggered by a shortcut, however no default shortcuts are assigned. To assign a shortcut just search for `sops` in `Settings` --> `Keymap`.
+
+### View
+
+**Description:** decrypts and displays content
+
+**CLI equivalent:** `sops --decrypt <file>`
+
+**Requirements:** sops needs to be able to decrypt the file i.e. provide the corresponding environment variables or a `.sops.yaml`
+
+### Edit
+
+**Description:** allows you to change the content
+
+**CLI equivalent:** `sops <file>`
+
+**Requirements:** sops needs to be able to edit the file i.e. sops will use the available information from the encrypted file, but some environment variables or a `.sops.yaml` may still be required
+
+### Replace
+
+**Description:** allows you to replace the content
+
+**CLI equivalent:** `sops --encrypt --in-place <file>`
+
+**Requirements:** sops needs to be able to encrypt content i.e. sops will use the file ending of the existing file to figure our the file type, but some environment variables or a `.sops.yaml` are still required for encryption

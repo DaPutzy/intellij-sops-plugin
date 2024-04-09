@@ -7,8 +7,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DetectionUtil {
 
@@ -32,8 +34,18 @@ public class DetectionUtil {
 	 * @return if a sops file was detected
 	 */
 	public boolean sopsFileDetected(@NotNull final VirtualFile file) {
-		final String content = FileUtil.getInstance().getContent(file);
+		if (file.getFileType().isBinary()) {
+			return false;
+		}
 
-		return SOPS_KEYWORDS.stream().allMatch(content::contains);
+		try {
+			final String content = FileUtil.getInstance().getContent(file);
+
+			return SOPS_KEYWORDS.stream().allMatch(content::contains);
+		} catch (final Exception e) {
+			log.warn("could not get content of file {}", file.getName(), e);
+		}
+
+		return false;
 	}
 }
