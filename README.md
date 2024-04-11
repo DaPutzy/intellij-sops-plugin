@@ -41,4 +41,4 @@ Each of these actions can also be triggered by a shortcut, however no default sh
 
 **CLI equivalent:** `sops --encrypt --in-place <file>`
 
-**Requirements:** sops needs to be able to encrypt content i.e. sops will use the file ending of the existing file to figure our the file type, but some environment variables or a `.sops.yaml` are still required for encryption
+**Requirements:** sops needs to be able to encrypt content i.e. sops will use the file ending of the existing file to figure out the file type, but some environment variables or a `.sops.yaml` are still required for encryption
