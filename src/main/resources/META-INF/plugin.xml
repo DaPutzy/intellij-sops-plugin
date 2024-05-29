@@ -16,10 +16,9 @@
 	<description>Allows you to simply edit a Sops file via a button or action.</description>
 
 	<change-notes><![CDATA[
-		<h2>Major</h2>
+		<h2>Patch</h2>
 		<ul>
-			<li>Action "Simple Sops Edit" now actually edits the existing file and will respect settings from within the encrypted file.</li>
-			<li>The plugin no longer necessarily requires a sops config (.sops.yaml), however it is still strongly recommended.</li>
+			<li>Increase version range to include 2024.2</li>
 		</ul>
 	]]></change-notes>
 
