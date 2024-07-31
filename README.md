@@ -3,7 +3,7 @@
 ## Prerequisites
 
 * You should have sops installed and configured on your system.
-* On Windows `powershell` is required (should be available in anything >= Win 7).
+* On Windows `powershell` >= 6 is required. [Installation Instructions](https://learn.microsoft.com/de-de/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4)
 
 ## Settings
 
