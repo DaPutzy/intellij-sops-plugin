@@ -56,7 +56,7 @@ public class ScriptUtil {
 
 			Files.writeString(pwshFile, PWSH_SCRIPT, StandardCharsets.UTF_8, StandardOpenOption.APPEND);
 
-			final String cmdFileContent = "@powershell.exe -NoProfile -File \"" + pwshFile.toAbsolutePath() + "\" %1";
+			final String cmdFileContent = "@pwsh.exe -NoProfile -File \"" + pwshFile.toAbsolutePath() + "\" %1";
 			Files.writeString(cmdFile, cmdFileContent, StandardCharsets.UTF_8, StandardOpenOption.APPEND);
 
 			return ScriptFiles.builder().directory(tempDirectory).script(cmdFile).build();
