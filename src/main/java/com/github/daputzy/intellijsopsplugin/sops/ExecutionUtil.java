@@ -201,6 +201,9 @@ public class ExecutionUtil {
 			EnvironmentUtil.parseEnv(environmentList.toArray(String[]::new))
 		);
 
+		// https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies
+		command.withEnvironment("PSExecutionPolicyPreference", "Bypass");
+
 		return command;
 	}
 }
