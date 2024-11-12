@@ -16,10 +16,9 @@
 	<description>Allows you to simply edit a Sops file via a button or action.</description>
 
 	<change-notes><![CDATA[
-		<h2>Minor</h2>
+		<h2>Patch</h2>
 		<ul>
-			<li>Fix bug with Windows 11 powershell execution policy</li>
-			<li>Switch from powershell <= 5 to powershell >= 6</li>
+			<li>Increase version range to include 2024.3</li>
 		</ul>
 	]]></change-notes>
 
