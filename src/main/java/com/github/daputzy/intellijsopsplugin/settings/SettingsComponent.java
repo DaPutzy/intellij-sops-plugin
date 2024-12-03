@@ -1,17 +1,25 @@
 package com.github.daputzy.intellijsopsplugin.settings;
 
+import com.intellij.execution.wsl.WSLDistribution;
+import com.intellij.execution.wsl.WSLUtil;
+import com.intellij.execution.wsl.WslDistributionManager;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
+
 import javax.swing.*;
 import java.awt.*;
+import java.util.stream.Stream;
 
 public class SettingsComponent {
 
 	private final JPanel main;
 	private final JBTextField sopsEnvironmentTextField = new JBTextField();
 	private final JBTextField sopsExecutableTextField = new JBTextField();
+	private final JBCheckBox sopsUseWSL = new JBCheckBox();
+	private final ComboBox<String> sopsWslDistributionName;
 	private final JBCheckBox sopsFilesReadOnlyCheckBox = new JBCheckBox();
 
 	public SettingsComponent() {
@@ -29,6 +37,26 @@ public class SettingsComponent {
 		executableLabel.add(new JLabel("Sops executable"));
 		executableLabel.add(executableHint);
 
+		final JPanel useWSL = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		useWSL.add(new JLabel("Use WSL (if available)"));
+		useWSL.add(sopsUseWSL);
+
+
+		if (!WSLUtil.isSystemCompatible()) {
+			sopsUseWSL.setEnabled(false);
+			sopsUseWSL.setSelected(false);
+
+			sopsWslDistributionName = new ComboBox<>();
+			sopsWslDistributionName.setEnabled(false);
+		} else {
+			Stream<String> distros = WslDistributionManager.getInstance().getInstalledDistributions().stream().map(WSLDistribution::getPresentableName);
+			sopsWslDistributionName = new ComboBox<>(distros.toArray(String[]::new));
+			sopsWslDistributionName.setSelectedIndex(0);
+		}
+		final JPanel wslDistributionName = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		wslDistributionName.add(new JLabel("Wsl distribution"));
+		wslDistributionName.add(sopsWslDistributionName);
+
 		final JLabel readonlyHint = new JLabel(AllIcons.Actions.IntentionBulbGrey);
 		readonlyHint.setToolTipText("<html><h2>Here you can specify if encrypted sops files should be read only</h2><h3>i.e. you can only edit them via the plugin</h3><h4>Default:</h4><pre>false</pre></html>");
 
@@ -39,7 +67,9 @@ public class SettingsComponent {
 		main = FormBuilder.createFormBuilder()
 			.addLabeledComponent(environmentLabel, sopsEnvironmentTextField, 1, false)
 			.addLabeledComponent(executableLabel, sopsExecutableTextField, 2, false)
-			.addLabeledComponent(readonlyLabel, sopsFilesReadOnlyCheckBox, 3, false)
+			.addLabeledComponent(useWSL, sopsUseWSL, 3, false)
+			.addLabeledComponent(wslDistributionName, sopsWslDistributionName, 4, false)
+			.addLabeledComponent(readonlyLabel, sopsFilesReadOnlyCheckBox, 5, false)
 			.addComponentFillVertically(new JPanel(), 0)
 			.getPanel();
 	}
@@ -66,6 +96,24 @@ public class SettingsComponent {
 
 	public void setSopsExecutable(final String newText) {
 		sopsExecutableTextField.setText(newText);
+	}
+
+	public boolean getSopsUseWSL() {
+		return sopsUseWSL.isSelected();
+	}
+
+	public void setSopsUseWSL(final boolean selected) {
+		sopsUseWSL.setSelected(selected);
+	}
+
+	public String getSopsWslDistributionName() {
+		return sopsWslDistributionName.getItem();
+	}
+
+	public void setSopsWslDistributionName(final String newValue) {
+		if (newValue != null) {
+			sopsWslDistributionName.setItem(newValue);
+		}
 	}
 
 	public boolean getSopsFilesReadOnly() {
