@@ -1,5 +1,6 @@
 package com.github.daputzy.intellijsopsplugin.sops;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -41,8 +42,8 @@ public class ExecutionUtil {
 	 * @param file           file
 	 * @param successHandler called on success with decrypted content
 	 */
-	public void decrypt(final Project project, VirtualFile file, final Consumer<String> successHandler) {
-		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
+	public void decrypt(final Project project, File file, final Consumer<String> successHandler) {
+		final GeneralCommandLine command = buildCommand(file.getParent());
 
 		command.addParameter("-d");
 		command.addParameter(file.getName());

@@ -10,14 +10,27 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
 
 public class EditSopsAction extends SopsAction {
 
 	@Override
-	public void handle(final Project project, final VirtualFile file) {
-		ExecutionUtil.getInstance().decrypt(project, file, decryptedContent -> {
+	public @NotNull String getName() {
+		return "Edit";
+	}
+
+	@Override
+	public boolean supports(@NotNull VirtualFile file) {
+		return file.exists() && file.getExtension() != null && file.isWritable() && file.isInLocalFileSystem();
+	}
+
+	@Override
+	public void handle(final @NotNull Project project, final @NotNull VirtualFile file) {
+		final File tempFileWithContentOfVirtualFile = FileUtil.getInstance().cloneContentToTempFile(file);
+
+		ExecutionUtil.getInstance().decrypt(project, tempFileWithContentOfVirtualFile, decryptedContent -> {
 			final String originalContent = FileUtil.getInstance().getContent(file);
 
 			final VirtualFile inMemoryFile = new EditActionVirtualFile(file, decryptedContent);

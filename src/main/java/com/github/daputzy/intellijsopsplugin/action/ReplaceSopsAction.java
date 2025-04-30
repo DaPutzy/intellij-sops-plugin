@@ -18,7 +18,17 @@ import java.util.Optional;
 public class ReplaceSopsAction extends SopsAction {
 
 	@Override
-	public void handle(final Project project, final VirtualFile file) {
+	public @NotNull String getName() {
+		return "Replace";
+	}
+
+	@Override
+	public boolean supports(@NotNull VirtualFile file) {
+		return file.exists() && file.getExtension() != null && file.isWritable() && file.isInLocalFileSystem();
+	}
+
+	@Override
+	public void handle(final @NotNull Project project, final @NotNull VirtualFile file) {
 		final String originalContent = FileUtil.getInstance().getContent(file);
 
 		final VirtualFile inMemoryFile = new ReplaceActionVirtualFile(file, StringUtils.EMPTY);
