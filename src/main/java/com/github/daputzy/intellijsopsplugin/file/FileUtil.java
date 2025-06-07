@@ -1,8 +1,6 @@
 package com.github.daputzy.intellijsopsplugin.file;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.UUID;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -47,38 +45,5 @@ public class FileUtil {
 				throw new RuntimeException("Could not write content to file", e);
 			}
 		});
-	}
-
-	/**
-	 * creates a temp file with the content and extension of the given virtual file
-	 *
-	 * @param file virtual file
-	 * @return temp file
-	 */
-	public @NotNull File cloneContentToTempFile(@NotNull final VirtualFile file) {
-		final File tempFile;
-		try {
-			tempFile = WriteAction.computeAndWait(() -> com.intellij.openapi.util.io.FileUtil.createTempFile(
-				"intellij-sops-plugin-" + file.getNameWithoutExtension() + "-" + UUID.randomUUID(),
-				'.' + file.getExtension(),
-				true
-			));
-		} catch (final IOException e) {
-			throw new RuntimeException("Could not create temp file.", e);
-		}
-
-		final String content = getContent(file);
-
-		try {
-			WriteAction.runAndWait(() -> com.intellij.openapi.util.io.FileUtil.writeToFile(
-				tempFile,
-				content,
-				file.getCharset()
-			));
-		} catch (final IOException e) {
-			throw new RuntimeException("Could not write to temp file.", e);
-		}
-
-		return tempFile;
 	}
 }

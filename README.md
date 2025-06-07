@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-* You should have [sops](https://github.com/getsops/sops) (>=v3.8.1) installed and configured on your system.
+* You should have [sops](https://github.com/getsops/sops) (>=v3.10.0) installed and configured on your system.
 * On Windows `powershell` (>=7) is required. Please follow the [installation instructions](https://learn.microsoft.com/de-de/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4).
 
 ## Settings

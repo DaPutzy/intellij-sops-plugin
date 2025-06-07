@@ -24,7 +24,7 @@ public class ReplaceSopsAction extends SopsAction {
 
 	@Override
 	public boolean supports(@NotNull VirtualFile file) {
-		return file.exists() && file.getExtension() != null && file.isWritable() && file.isInLocalFileSystem();
+		return file.exists() && file.isWritable() && file.isInLocalFileSystem();
 	}
 
 	@Override

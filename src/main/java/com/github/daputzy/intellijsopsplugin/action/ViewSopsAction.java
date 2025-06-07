@@ -1,6 +1,5 @@
 package com.github.daputzy.intellijsopsplugin.action;
 
-import java.io.File;
 import java.util.Arrays;
 
 import com.github.daputzy.intellijsopsplugin.file.DecryptedSopsFileWithReference;
@@ -21,14 +20,14 @@ public class ViewSopsAction extends SopsAction {
 
 	@Override
 	public boolean supports(final @NotNull VirtualFile file) {
-		return file.exists() && file.getExtension() != null;
+		return file.exists();
 	}
 
 	@Override
 	public void handle(final @NotNull Project project, final @NotNull VirtualFile file) {
-		final File tempFileWithContentOfVirtualFile = FileUtil.getInstance().cloneContentToTempFile(file);
+		final String originalContent = FileUtil.getInstance().getContent(file);
 
-		ExecutionUtil.getInstance().decrypt(project, tempFileWithContentOfVirtualFile, decryptedContent -> {
+		ExecutionUtil.getInstance().decrypt(project, file, originalContent, decryptedContent -> {
 			final ViewActionVirtualFile inMemoryFile = new ViewActionVirtualFile(file, decryptedContent);
 			inMemoryFile.setWritable(false);
 

@@ -29,6 +29,7 @@
 			serviceImplementation="com.github.daputzy.intellijsopsplugin.settings.SettingsState"/>
 
 		<postStartupActivity implementation="com.github.daputzy.intellijsopsplugin.CheckPowershellStartupActivity" />
+		<postStartupActivity implementation="com.github.daputzy.intellijsopsplugin.CheckSopsStartupActivity" />
 
 		<applicationConfigurable
 			parentId="tools"

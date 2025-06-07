@@ -2,6 +2,7 @@
 # libraries
 junit = "4.13.2"
 opentest4j = "1.3.0"
+semver = "0.10.2"
 
 # plugins
 changelog = "2.2.1"
@@ -11,6 +12,7 @@ lombok = "8.13.1"
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 opentest4j = { group = "org.opentest4j", name = "opentest4j", version.ref = "opentest4j" }
+semver = { group = "com.github.zafarkhaja", name = "java-semver", version.ref = "semver" }
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
