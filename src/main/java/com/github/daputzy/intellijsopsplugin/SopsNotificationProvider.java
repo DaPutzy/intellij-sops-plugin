@@ -14,7 +14,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotificationProvider;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class SopsNotificationProvider implements EditorNotificationProvider {
 
@@ -23,7 +22,7 @@ public class SopsNotificationProvider implements EditorNotificationProvider {
 	private static final SopsAction REPLACE_SOPS_ACTION = new ReplaceSopsAction();
 
 	@Override
-	public @NotNull Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(
+	public @NotNull Function<? super FileEditor, ? extends JComponent> collectNotificationData(
 		@NotNull final Project project,
 		@NotNull final VirtualFile file
 	) {
