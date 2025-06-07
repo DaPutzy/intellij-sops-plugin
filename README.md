@@ -23,7 +23,7 @@ Each of these actions can also be triggered by a shortcut, however no default sh
 
 **Description:** decrypts and displays content
 
-**CLI equivalent:** `sops --decrypt <file>`
+**CLI equivalent:** `sops decrypt <file>`
 
 **Requirements:** sops needs to be able to decrypt the file i.e. provide the corresponding environment variables or a `.sops.yaml`
 
@@ -31,7 +31,7 @@ Each of these actions can also be triggered by a shortcut, however no default sh
 
 **Description:** allows you to change the content
 
-**CLI equivalent:** `sops <file>`
+**CLI equivalent:** `sops edit <file>`
 
 **Requirements:** sops needs to be able to edit the file i.e. sops will use the available information from the encrypted file, but some environment variables or a `.sops.yaml` may still be required
 
@@ -39,6 +39,6 @@ Each of these actions can also be triggered by a shortcut, however no default sh
 
 **Description:** allows you to replace the content
 
-**CLI equivalent:** `sops --encrypt --in-place <file>`
+**CLI equivalent:** `sops encrypt --in-place <file>`
 
 **Requirements:** sops needs to be able to encrypt content i.e. sops will use the file ending of the existing file to figure out the file type, but some environment variables or a `.sops.yaml` are still required for encryption
