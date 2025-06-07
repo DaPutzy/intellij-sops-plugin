@@ -15,13 +15,6 @@
 		 Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
 	<description>Allows you to simply edit a Sops file via a button or action.</description>
 
-	<change-notes><![CDATA[
-		<h2>Patch</h2>
-		<ul>
-			<li>Increase version range to include 2025.1</li>
-		</ul>
-	]]></change-notes>
-
 	<!-- Product and plugin compatibility requirements.
 		 Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
 	<depends>com.intellij.modules.platform</depends>
