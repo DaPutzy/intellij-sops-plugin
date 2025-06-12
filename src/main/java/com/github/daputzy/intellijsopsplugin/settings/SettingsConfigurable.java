@@ -35,6 +35,8 @@ public class SettingsConfigurable implements Configurable {
 
 		return !Objects.equals(settings.sopsEnvironment, settingsComponent.getSopsEnvironment()) ||
 			!Objects.equals(settings.sopsExecutable, settingsComponent.getSopsExecutable()) ||
+			!Objects.equals(settings.sopsUseWSL, settingsComponent.getSopsUseWSL()) ||
+			!Objects.equals(settings.sopsWslDistributionName, settingsComponent.getSopsWslDistributionName()) ||
 			!Objects.equals(settings.sopsFilesReadOnly, settingsComponent.getSopsFilesReadOnly());
 	}
 
@@ -44,6 +46,8 @@ public class SettingsConfigurable implements Configurable {
 
 		settings.sopsEnvironment = settingsComponent.getSopsEnvironment();
 		settings.sopsExecutable = settingsComponent.getSopsExecutable();
+		settings.sopsUseWSL = settingsComponent.getSopsUseWSL();
+		settings.sopsWslDistributionName = settingsComponent.getSopsWslDistributionName();
 		settings.sopsFilesReadOnly = settingsComponent.getSopsFilesReadOnly();
 	}
 
@@ -53,6 +57,8 @@ public class SettingsConfigurable implements Configurable {
 
 		settingsComponent.setSopsEnvironment(settings.sopsEnvironment);
 		settingsComponent.setSopsExecutable(settings.sopsExecutable);
+		settingsComponent.setSopsUseWSL(settings.sopsUseWSL);
+		settingsComponent.setSopsWslDistributionName(settings.sopsWslDistributionName);
 		settingsComponent.setSopsFilesReadOnly(settings.sopsFilesReadOnly);
 	}
 

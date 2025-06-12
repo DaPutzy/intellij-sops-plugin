@@ -7,6 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 
+import com.github.daputzy.intellijsopsplugin.settings.SettingsState;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.wsl.WSLDistribution;
+import com.intellij.execution.wsl.WslPath;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,13 +46,21 @@ public class ScriptUtil {
 
 	@SneakyThrows(IOException.class)
 	public ScriptFiles createScriptFiles() {
+		boolean isWsl = SettingsState.getInstance().sopsUseWSL;
 		// create temp directory
-		final Path tempDirectory = Files.createTempDirectory("simple-sops-edit");
+		Path tempDirectory;
+		if(isWsl) {
+			WSLDistribution distro = SettingsState.getInstance().tryGetWslDistribution().orElseThrow();
+            var tempParent = Path.of(distro.getWindowsPath("/tmp"));
+			tempDirectory = Files.createTempDirectory(tempParent, "simple-sops-edit");
+		} else {
+			tempDirectory = Files.createTempDirectory("simple-sops-edit");
+		}
 
 		// make sure temp directory is cleaned on application exit
 		FileUtils.forceDeleteOnExit(tempDirectory.toFile());
 
-		if (SystemUtils.IS_OS_WINDOWS) {
+		if (SystemUtils.IS_OS_WINDOWS && !SettingsState.getInstance().sopsUseWSL) {
 			final Path cmdFile = Files.createTempFile(tempDirectory, null, ".cmd");
 			final Path pwshFile = Files.createTempFile(tempDirectory, null, ".ps1");
 
@@ -61,7 +73,7 @@ public class ScriptUtil {
 
 			return ScriptFiles.builder().directory(tempDirectory).script(cmdFile).build();
 		} else {
-			final Path shellFile = Files.createTempFile(tempDirectory, null, ".sh");
+			Path shellFile = Files.createTempFile(tempDirectory, null, ".sh");
 
 			makeExecutable(shellFile);
 
@@ -72,7 +84,21 @@ public class ScriptUtil {
 	}
 
 	private void makeExecutable(final Path... files) {
-		if (!Arrays.stream(files).map(Path::toFile).allMatch(f -> f.setExecutable(true))) {
+		if (!Arrays.stream(files).map(Path::toFile).allMatch(f -> {
+				if(WslPath.isWslUncPath(f.getAbsolutePath())) {
+					WslPath pathInWsl = WslPath.parseWindowsUncPath(f.getAbsolutePath());
+					assert pathInWsl != null; // This should never be null, as we have determined before it is a WSL file
+                    try {
+						var output = pathInWsl.getDistribution().executeOnWsl(1000, "chmod", "+x", pathInWsl.getLinuxPath());
+						if(output.getExitCode() == 0) return true;
+						throw new IllegalStateException("Error executing chmod command: " + output.getStderr());
+                    } catch (ExecutionException e) {
+						throw new IllegalStateException("Unable to execute chmod command", e);
+                    }
+				} else {
+					return f.setExecutable(true);
+				}
+				})) {
 			throw new IllegalStateException("Could not make scripts executable");
 		}
 	}
