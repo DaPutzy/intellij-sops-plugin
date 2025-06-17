@@ -9,6 +9,7 @@ import com.intellij.notification.BrowseNotificationAction;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.ProjectActivity;
 import com.intellij.util.text.SemVer;
 import kotlin.Unit;
@@ -32,7 +33,7 @@ public class CheckSopsStartupActivity implements ProjectActivity {
     @Nullable
     @Override
     public Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
-        final GeneralCommandLine command = ExecutionUtil.getInstance().buildCommand(null)
+        final GeneralCommandLine command = ExecutionUtil.getInstance().buildCommand(ProjectUtil.guessProjectDir(project))
             .withParameters("--version");
 
         final OSProcessHandler processHandler;

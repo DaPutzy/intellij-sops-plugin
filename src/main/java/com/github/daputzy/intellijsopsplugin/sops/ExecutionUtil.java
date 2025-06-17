@@ -81,7 +81,7 @@ public class ExecutionUtil {
 		);
 
 		try {
-			IOUtils.write(content, processHandler.getProcessInput(), StandardCharsets.UTF_8);
+			IOUtils.write(content, processHandler.getProcessInput(), file.getCharset());
 			Objects.requireNonNull(processHandler.getProcessInput()).close();
 		} catch (final IOException e) {
 			throw new RuntimeException("Could not write process input to sops process", e);

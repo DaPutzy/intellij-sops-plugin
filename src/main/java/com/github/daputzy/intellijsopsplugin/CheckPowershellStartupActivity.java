@@ -59,7 +59,7 @@ public class CheckPowershellStartupActivity implements ProjectActivity {
             .createNotification("Sops plugin ", ERROR_MESSAGE, NotificationType.WARNING)
             .addAction(new BrowseNotificationAction(
                 "Official installation instructions",
-                "https://learn.microsoft.com/de-de/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4"
+                "https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows"
             ))
             .setImportant(true)
             .notify(project);

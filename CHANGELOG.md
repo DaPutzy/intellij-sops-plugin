@@ -2,9 +2,7 @@
 
 # Simple Sops Edit Changelog
 
-## [Unreleased]
-
-## [3.0.0] - 2025-06-07
+## [3.0.0] - 2025-06-17
 
 ### Changed
 - Moved to scaffold created from [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template)
@@ -15,4 +13,4 @@
 - Added warning if no or an incorrect sops version is installed 
 
 ### Removed
-- Removed support for sops versions <=3.10.0
+- Removed support for sops versions <3.10.0
