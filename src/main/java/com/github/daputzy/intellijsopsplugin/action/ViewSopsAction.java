@@ -3,17 +3,31 @@ package com.github.daputzy.intellijsopsplugin.action;
 import java.util.Arrays;
 
 import com.github.daputzy.intellijsopsplugin.file.DecryptedSopsFileWithReference;
+import com.github.daputzy.intellijsopsplugin.file.FileUtil;
 import com.github.daputzy.intellijsopsplugin.sops.ExecutionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
 
 public class ViewSopsAction extends SopsAction {
 
 	@Override
-	public void handle(final Project project, final VirtualFile file) {
-		ExecutionUtil.getInstance().decrypt(project, file, decryptedContent -> {
+	public @NotNull String getName() {
+		return "View";
+	}
+
+	@Override
+	public boolean supports(final @NotNull VirtualFile file) {
+		return file.exists();
+	}
+
+	@Override
+	public void handle(final @NotNull Project project, final @NotNull VirtualFile file) {
+		final String originalContent = FileUtil.getInstance().getContent(file);
+
+		ExecutionUtil.getInstance().decrypt(project, file, originalContent, decryptedContent -> {
 			final ViewActionVirtualFile inMemoryFile = new ViewActionVirtualFile(file, decryptedContent);
 			inMemoryFile.setWritable(false);
 

@@ -16,10 +16,20 @@ import java.util.Optional;
 public class EditSopsAction extends SopsAction {
 
 	@Override
-	public void handle(final Project project, final VirtualFile file) {
-		ExecutionUtil.getInstance().decrypt(project, file, decryptedContent -> {
-			final String originalContent = FileUtil.getInstance().getContent(file);
+	public @NotNull String getName() {
+		return "Edit";
+	}
 
+	@Override
+	public boolean supports(@NotNull VirtualFile file) {
+		return file.exists() && file.isWritable() && file.isInLocalFileSystem();
+	}
+
+	@Override
+	public void handle(final @NotNull Project project, final @NotNull VirtualFile file) {
+		final String originalContent = FileUtil.getInstance().getContent(file);
+
+		ExecutionUtil.getInstance().decrypt(project, file, originalContent, decryptedContent -> {
 			final VirtualFile inMemoryFile = new EditActionVirtualFile(file, decryptedContent);
 
 			ApplicationManager.getApplication().invokeLater(() -> {

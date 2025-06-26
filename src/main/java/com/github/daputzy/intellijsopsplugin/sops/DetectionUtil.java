@@ -34,7 +34,7 @@ public class DetectionUtil {
 	 * @return if a sops file was detected
 	 */
 	public boolean sopsFileDetected(@NotNull final VirtualFile file) {
-		if (file.getFileType().isBinary()) {
+		if (!file.exists() || file.getFileType().isBinary()) {
 			return false;
 		}
 

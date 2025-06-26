@@ -18,7 +18,11 @@ public abstract class SopsAction extends AnAction {
 		return ActionUpdateThread.BGT;
 	}
 
-	public abstract void handle(final Project project, final VirtualFile file);
+	public abstract @NotNull String getName();
+
+	public abstract boolean supports(@NotNull final VirtualFile file);
+
+	public abstract void handle(@NotNull final Project project, @NotNull final VirtualFile file);
 
 	@Override
 	public void actionPerformed(@NotNull final AnActionEvent e) {
@@ -27,6 +31,10 @@ public abstract class SopsAction extends AnAction {
 
 		if (project == null || file == null) {
 			throw new IllegalStateException();
+		}
+
+		if (!supports(file)) {
+			return;
 		}
 
 		handle(project, file);
@@ -40,6 +48,10 @@ public abstract class SopsAction extends AnAction {
 		final VirtualFile file = e.getData(CommonDataKeys.VIRTUAL_FILE);
 
 		if (project == null || file == null) {
+			return;
+		}
+
+		if (!supports(file)) {
 			return;
 		}
 

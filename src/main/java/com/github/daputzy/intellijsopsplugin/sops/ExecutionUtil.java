@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -14,6 +16,7 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessListener;
 import com.intellij.execution.process.ProcessOutputType;
 import com.intellij.openapi.project.Project;
@@ -27,6 +30,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExecutionUtil {
@@ -39,15 +43,22 @@ public class ExecutionUtil {
 	 *
 	 * @param project        project
 	 * @param file           file
+	 * @param content        content of the file (encrypted)
 	 * @param successHandler called on success with decrypted content
 	 */
-	public void decrypt(final Project project, VirtualFile file, final Consumer<String> successHandler) {
-		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
+	public void decrypt(
+		@NotNull final Project project,
+		@NotNull final VirtualFile file,
+		@NotNull final String content,
+		@NotNull final Consumer<String> successHandler
+	) {
+		final GeneralCommandLine command = buildCommand(file.getParent());
 
-		command.addParameter("-d");
+		command.addParameter("decrypt");
+		command.addParameter("--filename-override");
 		command.addParameter(file.getName());
 
-		run(
+		final ProcessHandler processHandler = run(
 			command,
 			new ErrorNotificationProcessListener(project),
 			new ProcessAdapter() {
@@ -68,6 +79,13 @@ public class ExecutionUtil {
 				}
 			}
 		);
+
+		try {
+			IOUtils.write(content, processHandler.getProcessInput(), file.getCharset());
+			Objects.requireNonNull(processHandler.getProcessInput()).close();
+		} catch (final IOException e) {
+			throw new RuntimeException("Could not write process input to sops process", e);
+		}
 	}
 
 	/**
@@ -84,10 +102,10 @@ public class ExecutionUtil {
 		final Runnable successHandler,
 		final Runnable failureHandler
 	) {
-		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
+		final GeneralCommandLine command = buildCommand(file.getParent());
 
-		command.addParameter("-e");
-		command.addParameter("-i");
+		command.addParameter("encrypt");
+		command.addParameter("--in-place");
 		command.addParameter(file.getName());
 
 		run(
@@ -124,7 +142,7 @@ public class ExecutionUtil {
 	) {
 		final ScriptUtil.ScriptFiles scriptFiles = ScriptUtil.getInstance().createScriptFiles();
 
-		final GeneralCommandLine command = buildCommand(file.getParent().getPath());
+		final GeneralCommandLine command = buildCommand(file.getParent());
 
 		final String editorPath = scriptFiles.script().toAbsolutePath().toString()
 			// escape twice for windows because of ENV variable parsing
@@ -133,6 +151,7 @@ public class ExecutionUtil {
 			.replace(" ", "\\ ");
 
 		command.withEnvironment("EDITOR", editorPath);
+		command.addParameter("edit");
 		command.addParameter(file.getName());
 
 		run(
@@ -158,7 +177,7 @@ public class ExecutionUtil {
 				public void onTextAvailable(@NotNull final ProcessEvent event, @NotNull final Key outputType) {
 					if (null != event.getText() && ScriptUtil.INPUT_START_IDENTIFIER.equals(event.getText().trim())) {
 						IOUtils.write(newContent, event.getProcessHandler().getProcessInput(), file.getCharset());
-						event.getProcessHandler().getProcessInput().close();
+						Objects.requireNonNull(event.getProcessHandler().getProcessInput()).close();
 					}
 
 					if (ProcessOutputType.isStderr(outputType)) {
@@ -171,7 +190,14 @@ public class ExecutionUtil {
 		);
 	}
 
-	private void run(final GeneralCommandLine command, final ProcessListener... listener) {
+	/**
+	 * execute command
+	 *
+	 * @param command  command
+	 * @param listener process listeners
+	 * @return process handler
+	 */
+	private ProcessHandler run(@NotNull final GeneralCommandLine command, @NotNull final ProcessListener... listener) {
 		final OSProcessHandler processHandler;
 		try {
 			processHandler = new OSProcessHandler(command);
@@ -182,13 +208,29 @@ public class ExecutionUtil {
 		Arrays.stream(listener).forEach(processHandler::addProcessListener);
 
 		processHandler.startNotify();
+
+		return processHandler;
 	}
 
-	private GeneralCommandLine buildCommand(final String cwd) {
+	/**
+	 * build basic sops command
+	 *
+	 * @param cwd working directory for the command to be executed in
+	 * @return sops command
+	 */
+	public GeneralCommandLine buildCommand(@Nullable final VirtualFile cwd) {
+		final String workDirectory = Optional.ofNullable(cwd)
+			.filter(VirtualFile::exists)
+			.filter(VirtualFile::isDirectory)
+			.filter(VirtualFile::isInLocalFileSystem)
+			.filter(VirtualFile::isWritable)
+			.map(VirtualFile::getPath)
+			.orElse(null);
+
 		final GeneralCommandLine command = new GeneralCommandLine(SettingsState.getInstance().sopsExecutable)
 			.withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
 			.withCharset(StandardCharsets.UTF_8)
-			.withWorkDirectory(cwd);
+			.withWorkDirectory(workDirectory);
 
 		final String[] environmentString = SettingsState.getInstance().sopsEnvironment.split("\\s(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 

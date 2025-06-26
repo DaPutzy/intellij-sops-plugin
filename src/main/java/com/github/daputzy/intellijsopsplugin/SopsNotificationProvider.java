@@ -1,6 +1,7 @@
 package com.github.daputzy.intellijsopsplugin;
 
 import javax.swing.JComponent;
+import java.util.List;
 import java.util.function.Function;
 
 import com.github.daputzy.intellijsopsplugin.action.SopsAction;
@@ -17,9 +18,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class SopsNotificationProvider implements EditorNotificationProvider {
 
-	private static final SopsAction VIEW_SOPS_ACTION = new ViewSopsAction();
-	private static final SopsAction EDIT_SOPS_ACTION = new EditSopsAction();
-	private static final SopsAction REPLACE_SOPS_ACTION = new ReplaceSopsAction();
+	private static final List<SopsAction> SOPS_ACTIONS = List.of(
+		new ViewSopsAction(),
+		new EditSopsAction(),
+		new ReplaceSopsAction()
+	);
 
 	@Override
 	public @NotNull Function<? super FileEditor, ? extends JComponent> collectNotificationData(
@@ -34,9 +37,13 @@ public class SopsNotificationProvider implements EditorNotificationProvider {
 			final EditorNotificationPanel panel = new EditorNotificationPanel();
 
 			panel.setText("Sops file detected");
-			panel.createActionLabel("View", () -> VIEW_SOPS_ACTION.handle(project, file));
-			panel.createActionLabel("Edit", () -> EDIT_SOPS_ACTION.handle(project, file));
-			panel.createActionLabel("Replace", () -> REPLACE_SOPS_ACTION.handle(project, file));
+
+			SOPS_ACTIONS.stream()
+				.filter(action -> action.supports(file))
+				.forEach(action -> panel.createActionLabel(
+					action.getName(),
+					() -> action.handle(project, file)
+				));
 
 			return panel;
 		};
