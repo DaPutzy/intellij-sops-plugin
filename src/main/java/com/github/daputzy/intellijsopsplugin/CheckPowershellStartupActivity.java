@@ -25,7 +25,7 @@ public class CheckPowershellStartupActivity implements ProjectActivity {
 
     private static final String ERROR_MESSAGE =
         """
-        <p>PowerShell >= 7 is required for this plugin.</p>
+        <p>PowerShell >= 7.0.0 is required for this plugin.</p>
         <p>Please follow the installation instructions:</p>
         """;
 
