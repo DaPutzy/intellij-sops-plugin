@@ -14,10 +14,9 @@ import com.github.daputzy.intellijsopsplugin.settings.SettingsState;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.OSProcessHandler;
-import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessListener;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.process.ProcessListener;
 import com.intellij.execution.process.ProcessOutputType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -61,7 +60,7 @@ public class ExecutionUtil {
 		final ProcessHandler processHandler = run(
 			command,
 			new ErrorNotificationProcessListener(project),
-			new ProcessAdapter() {
+			new ProcessListener() {
 				private final StringBuffer stdout = new StringBuffer();
 
 				@Override
@@ -111,7 +110,7 @@ public class ExecutionUtil {
 		run(
 			command,
 			new ErrorNotificationProcessListener(project),
-			new ProcessAdapter() {
+			new ProcessListener() {
 				@Override
 				public void processTerminated(@NotNull final ProcessEvent event) {
 					if (event.getExitCode() == 0) {
@@ -157,7 +156,7 @@ public class ExecutionUtil {
 		run(
 			command,
 			new ErrorNotificationProcessListener(project),
-			new ProcessAdapter() {
+			new ProcessListener() {
 				private final AtomicBoolean failed = new AtomicBoolean(false);
 
 				@Override
