@@ -13,6 +13,14 @@ These Settings can be found under `Settings` --> `Tools` --> `Simple Sops Settin
 
 When you hover over the lightbulb a short description, an example and the default value is shown.
 
+## Using sops with age
+
+If you do not have a `.sops.yaml` in your project consider defining the environment variables `SOPS_AGE_KEY_FILE` and `SOPS_AGE_RECIPIENTS` in the plugin settings.
+
+### Passphrase-protected key files
+
+Consider setting the environment variable `SOPS_AGE_KEY_CMD` in the plugin settings. See [#34](https://github.com/DaPutzy/intellij-sops-plugin/issues/34#issuecomment-2845106739) for more information.
+
 ## Functionality
 
 When a sops file is "detected" by the plugin, a banner is shown. It allows you to view, edit or replace the content.
@@ -42,11 +50,3 @@ Each of these actions can also be triggered by a shortcut, however no default sh
 **CLI equivalent:** `sops encrypt --in-place <file>`
 
 **Requirements:** sops needs to be able to encrypt content i.e. sops will use the file ending of the existing file to figure out the file type, but some environment variables or a `.sops.yaml` are still required for encryption
-
-## Using sops with age
-
-If you do not have a `.sops.yaml` in your project consider defining the environment variables `SOPS_AGE_KEY_FILE` and `SOPS_AGE_RECIPIENTS` in the plugin settings.
-
-### Passphrase-protected key files
-
-Consider setting the environment variable `SOPS_AGE_KEY_CMD` in the plugin settings. See [#34](https://github.com/DaPutzy/intellij-sops-plugin/issues/34#issuecomment-2845106739) for more information.
