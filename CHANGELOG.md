@@ -4,8 +4,6 @@
 
 ## [Unreleased]
 
-## [3.0.0] - 2025-06-17
-
 ### Changed
 - Moved to scaffold created from [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template)
 - Switched to IntelliJ Platform Gradle Plugin (2.x).
@@ -16,3 +14,5 @@
 
 ### Removed
 - Removed support for sops versions <3.10.0
+
+## [2.1.2] - 2025-01-15
