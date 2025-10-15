@@ -6,7 +6,7 @@ semver = "0.10.2"
 
 # plugins
 changelog = "2.4.0"
-intelliJPlatform = "2.9.0"
+intelliJPlatform = "2.10.0"
 lombok = "9.0.0"
 
 [libraries]
