@@ -6,6 +6,7 @@
 
 ### Fixed
 - Removed usage of deprecated classes
+- Updated gradle plugins and dependencies
 
 ## [3.0.0]
 
