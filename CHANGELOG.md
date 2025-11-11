@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [3.0.1]
+
 ### Fixed
 - Removed usage of deprecated classes
 - Updated gradle plugins and dependencies
