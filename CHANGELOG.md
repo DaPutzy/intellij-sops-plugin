@@ -8,6 +8,9 @@
 - Raised minimal supported IDE version to 2024.2 (242)
 - Build with Java 21
 
+### Fixed
+- Removed usage of deprecated `ReadAction.compute`
+
 ## [3.0.1]
 
 ### Fixed
