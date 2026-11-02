@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+- Raised minimal supported IDE version to 2024.2 (242)
+- Build with Java 21
+
 ## [3.0.1]
 
 ### Fixed
