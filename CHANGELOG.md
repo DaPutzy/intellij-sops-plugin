@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### Added
+- Added VCS change markers (diff to decrypted HEAD) in the gutter of decrypted view/edit editors ([#90](https://github.com/DaPutzy/intellij-sops-plugin/issues/90))
+
 ### Changed
 - Raised minimal supported IDE version to 2024.2 (242)
 - Build with Java 21
