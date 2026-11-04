@@ -8,6 +8,11 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    ignore:
+      # Gradle 9.8 breaks bundled module resolution of the IntelliJ Platform Gradle Plugin 2.19.0 in Java-only projects,
+      # remove once a plugin release > 2.19.0 is used: https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/2262
+      - dependency-name: "gradle-wrapper"
+        versions: [ ">= 9.8.0" ]
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
