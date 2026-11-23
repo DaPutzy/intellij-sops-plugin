@@ -8,11 +8,14 @@
 - Added VCS change markers (diff to decrypted HEAD) in the gutter of decrypted view/edit editors ([#90](https://github.com/DaPutzy/intellij-sops-plugin/issues/90))
 
 ### Changed
+- Environment variables are now configured as a list of name / value pairs instead of a single text field, existing settings are migrated automatically ([#100](https://github.com/DaPutzy/intellij-sops-plugin/issues/100))
+- Documented how to use sops with age in the README, including keeping the private key in a credential store via `SOPS_AGE_KEY_CMD` ([#100](https://github.com/DaPutzy/intellij-sops-plugin/issues/100))
 - Raised minimal supported IDE version to 2024.2 (242)
 - Build with Java 21
 
 ### Fixed
 - Removed usage of deprecated `ReadAction.compute`
+- Environment variable values containing spaces or quotes (e.g. `SOPS_AGE_KEY_CMD` with arguments) are passed to sops correctly
 
 ## [3.0.1]
 
