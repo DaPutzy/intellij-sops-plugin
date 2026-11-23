@@ -5,6 +5,7 @@ import java.util.Arrays;
 import com.github.daputzy.intellijsopsplugin.file.DecryptedSopsFileWithReference;
 import com.github.daputzy.intellijsopsplugin.file.FileUtil;
 import com.github.daputzy.intellijsopsplugin.sops.ExecutionUtil;
+import com.github.daputzy.intellijsopsplugin.vcs.SopsLineStatusTrackerUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
@@ -41,7 +42,11 @@ public class ViewSopsAction extends SopsAction {
 					.findFirst()
 					.ifPresentOrElse(
 						virtualFile -> fileEditorManager.openFile(virtualFile, true),
-						() -> fileEditorManager.openFile(inMemoryFile, true)
+						() -> {
+							fileEditorManager.openFile(inMemoryFile, true);
+
+							SopsLineStatusTrackerUtil.getInstance().install(project, file, inMemoryFile, decryptedContent);
+						}
 					);
 			});
 		});

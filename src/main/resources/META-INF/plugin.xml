@@ -18,6 +18,8 @@
 	<!-- Product and plugin compatibility requirements.
 		 Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
 	<depends>com.intellij.modules.platform</depends>
+	<!-- line status tracker / change list manager, moved to the bundled "Version Control" plugin in 2026.3 -->
+	<depends>com.intellij.modules.vcs</depends>
 
 	<!-- Extension points defined by the plugin.
 		 Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->

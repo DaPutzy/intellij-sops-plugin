@@ -1,8 +1,10 @@
 package com.github.daputzy.intellijsopsplugin.action;
 
+import com.github.daputzy.intellijsopsplugin.SopsProjectDisposable;
 import com.github.daputzy.intellijsopsplugin.file.FileUtil;
 import com.github.daputzy.intellijsopsplugin.file.DecryptedSopsFileWithReference;
 import com.github.daputzy.intellijsopsplugin.sops.ExecutionUtil;
+import com.github.daputzy.intellijsopsplugin.vcs.SopsLineStatusTrackerUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.project.Project;
@@ -30,7 +32,7 @@ public class EditSopsAction extends SopsAction {
 		final String originalContent = FileUtil.getInstance().getContent(file);
 
 		ExecutionUtil.getInstance().decrypt(project, file, originalContent, decryptedContent -> {
-			final VirtualFile inMemoryFile = new EditActionVirtualFile(file, decryptedContent);
+			final EditActionVirtualFile inMemoryFile = new EditActionVirtualFile(file, decryptedContent);
 
 			ApplicationManager.getApplication().invokeLater(() -> {
 				final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
@@ -46,11 +48,16 @@ public class EditSopsAction extends SopsAction {
 				} else {
 					fileEditorManager.openFile(inMemoryFile, true);
 
-					final MessageBusConnection connection = project.getMessageBus().connect();
+					SopsLineStatusTrackerUtil.getInstance().install(project, file, inMemoryFile, decryptedContent);
+
+					final MessageBusConnection connection = project.getMessageBus().connect(SopsProjectDisposable.getInstance(project));
 					connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
 						@Override
 						public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile closedFile) {
 							if (inMemoryFile.equals(closedFile)) {
+								// always disconnect, otherwise this listener leaks until project is closed
+								connection.disconnect();
+
 								// check if it is our file first, other files may not have a document
 								final String closedFileContent = FileUtil.getInstance().getDocument(closedFile).getText();
 
@@ -64,8 +71,6 @@ public class EditSopsAction extends SopsAction {
 										// failure
 										() -> FileUtil.getInstance().writeContentBlocking(file, originalContent)
 									);
-
-									connection.disconnect();
 								}
 							}
 						}

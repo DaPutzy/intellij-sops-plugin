@@ -3,11 +3,11 @@ package com.github.daputzy.intellijsopsplugin.file;
 import java.io.IOException;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ThrowableRunnable;
 import lombok.AccessLevel;
@@ -22,7 +22,9 @@ public class FileUtil {
 	private static final FileUtil instance = new FileUtil();
 
 	public @NotNull Document getDocument(final VirtualFile file) {
-		final Document document = ReadAction.compute(() -> FileDocumentManager.getInstance().getDocument(file));
+		final Document document = ApplicationManager.getApplication().runReadAction(
+			(Computable<Document>) () -> FileDocumentManager.getInstance().getDocument(file)
+		);
 
 		if (document == null) {
 			throw new RuntimeException("Could not get document for file");
@@ -32,7 +34,9 @@ public class FileUtil {
 	}
 
 	public @NotNull String getContent(final VirtualFile file) {
-		return ReadAction.compute(() -> LoadTextUtil.loadText(file).toString());
+		return ApplicationManager.getApplication().runReadAction(
+			(Computable<String>) () -> LoadTextUtil.loadText(file).toString()
+		);
 	}
 
 	public void writeContentBlocking(final VirtualFile file, final String content) {
