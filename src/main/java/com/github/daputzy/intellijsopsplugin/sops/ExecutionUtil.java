@@ -3,12 +3,12 @@ package com.github.daputzy.intellijsopsplugin.sops;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 import com.github.daputzy.intellijsopsplugin.settings.SettingsState;
 import com.intellij.execution.ExecutionException;
@@ -21,7 +21,6 @@ import com.intellij.execution.process.ProcessOutputType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.EnvironmentUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -231,16 +230,13 @@ public class ExecutionUtil {
 			.withCharset(StandardCharsets.UTF_8)
 			.withWorkDirectory(workDirectory);
 
-		final String[] environmentString = SettingsState.getInstance().sopsEnvironment.split("\\s(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+		final Map<String, String> environment = new LinkedHashMap<>();
 
-		final List<String> environmentList = Arrays.stream(environmentString)
-			.map(String::trim)
-			.filter(Predicate.not(String::isBlank))
-			.toList();
+		SettingsState.getInstance().sopsEnvironmentVariables.stream()
+			.filter(variable -> variable.name != null && !variable.name.isBlank())
+			.forEach(variable -> environment.put(variable.name.trim(), Objects.requireNonNullElse(variable.value, "")));
 
-		command.withEnvironment(
-			EnvironmentUtil.parseEnv(environmentList.toArray(String[]::new))
-		);
+		command.withEnvironment(environment);
 
 		// https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies
 		command.withEnvironment("PSExecutionPolicyPreference", "Bypass");
